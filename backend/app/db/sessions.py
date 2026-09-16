@@ -1,16 +1,38 @@
-from collections.abc import AsyncGenerator
-
-from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
+from app.db.base import Base
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+# from contextlib import contextmanager
 
 from app.core.config import settings
 
-engine = create_async_engine(settings.DATABASE_URL, echo=False, future=True)
-
-AsyncSessionLocal = async_sessionmaker(
-    bind=engine, class_=AsyncSession, expire_on_commit=False
+# Create database engine
+engine = create_engine(
+    settings.DATABASE_URL,
+    pool_pre_ping=True,
+    pool_size=10,
+    max_overflow=20,
+    echo=False  # Set to True for SQL logging during development
 )
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
+# @contextmanager
+# def get_db_context():
+#     """Context manager for database sessions."""
+#     db = SessionLocal()
+#     try:
+#         yield db
+#     finally:
+#         db.close()
+
+def get_db():
+    """Dependency to get database session."""
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
 
 
-async def get_db() -> AsyncGenerator[AsyncSession, None]:
-    async with AsyncSessionLocal() as session:
-        yield session
+def init_db():
+    """Initialize database tables."""
+    Base.metadata.create_all(bind=engine)
