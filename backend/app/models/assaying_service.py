@@ -1,3 +1,7 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 from sqlalchemy import (
     BigInteger,
     Boolean,
@@ -10,6 +14,11 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
 from app.db.mixins.timestamp import TimestampMixin
+
+if TYPE_CHECKING:
+    from app.models.attachment import Attachment
+    from app.models.commodities import Commodity
+    from app.models.service_provider import ServiceProvider
 
 
 class AssayingService(Base, TimestampMixin):
@@ -48,37 +57,37 @@ class AssayingService(Base, TimestampMixin):
         nullable=True,
     )
 
-    service_provider: Mapped["ServiceProvider"] = relationship(
+    service_provider: Mapped[ServiceProvider] = relationship(
         "ServiceProvider",
         back_populates="assaying_service",
     )
 
-    testing_methods: Mapped[list["AssayingTestingMethod"]] = relationship(
+    testing_methods: Mapped[list[AssayingTestingMethod]] = relationship(
         "AssayingTestingMethod",
         back_populates="assaying_service",
         cascade="all, delete-orphan",
     )
 
-    commodities: Mapped[list["AssayingCommodity"]] = relationship(
+    commodities: Mapped[list[AssayingCommodity]] = relationship(
         "AssayingCommodity",
         back_populates="assaying_service",
         cascade="all, delete-orphan",
     )
 
-    special_equipment: Mapped[list["AssayingSpecialEquipment"]] = relationship(
+    special_equipment: Mapped[list[AssayingSpecialEquipment]] = relationship(
         "AssayingSpecialEquipment",
         back_populates="assaying_service",
         cascade="all, delete-orphan",
     )
 
-    attachments: Mapped[list["AssayingAttachment"]] = relationship(
+    attachments: Mapped[list[AssayingAttachment]] = relationship(
         "AssayingAttachment",
         back_populates="assaying_service",
         cascade="all, delete-orphan",
     )
 
     communication_preferences: Mapped[
-        list["AssayingCommunicationPreference"]
+        list[AssayingCommunicationPreference]
     ] = relationship(
         "AssayingCommunicationPreference",
         back_populates="assaying_service",
@@ -108,7 +117,7 @@ class AssayingTestingMethod(Base):
     # physical
     # chemical
 
-    assaying_service: Mapped["AssayingService"] = relationship(
+    assaying_service: Mapped[AssayingService] = relationship(
         "AssayingService",
         back_populates="testing_methods",
     )
@@ -135,12 +144,12 @@ class AssayingCommodity(Base):
         index=True,
     )
 
-    assaying_service: Mapped["AssayingService"] = relationship(
+    assaying_service: Mapped[AssayingService] = relationship(
         "AssayingService",
         back_populates="commodities",
     )
 
-    commodity: Mapped["Commodity"] = relationship(
+    commodity: Mapped[Commodity] = relationship(
         "Commodity",
     )
 
@@ -178,7 +187,7 @@ class AssayingSpecialEquipment(Base):
         nullable=True,
     )
 
-    assaying_service: Mapped["AssayingService"] = relationship(
+    assaying_service: Mapped[AssayingService] = relationship(
         "AssayingService",
         back_populates="special_equipment",
     )
@@ -205,12 +214,12 @@ class AssayingAttachment(Base):
         index=True,
     )
 
-    assaying_service: Mapped["AssayingService"] = relationship(
+    assaying_service: Mapped[AssayingService] = relationship(
         "AssayingService",
         back_populates="attachments",
     )
 
-    attachment: Mapped["Attachment"] = relationship(
+    attachment: Mapped[Attachment] = relationship(
         "Attachment",
     )
 
@@ -245,7 +254,7 @@ class AssayingCommunicationPreference(Base):
     # phone
     # email
 
-    assaying_service: Mapped["AssayingService"] = relationship(
+    assaying_service: Mapped[AssayingService] = relationship(
         "AssayingService",
         back_populates="communication_preferences",
     )

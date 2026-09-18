@@ -1,12 +1,17 @@
+from __future__ import annotations
+
 from decimal import Decimal
+from typing import TYPE_CHECKING
 
 from sqlalchemy import BigInteger, Boolean, ForeignKey, Numeric, String, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
 from app.db.mixins.timestamp import TimestampMixin
-from app.models.commodities import State , APMC , District , Tehsil , Commodity
-from app.models.service_provider import ServiceProvider
+
+if TYPE_CHECKING:
+    from app.models.commodities import Commodity, District, State, Tehsil
+    from app.models.service_provider import ServiceProvider
 
 
 class WarehouseService(Base, TimestampMixin):
@@ -55,37 +60,37 @@ class WarehouseService(Base, TimestampMixin):
         nullable=True,
     )
 
-    service_provider: Mapped["ServiceProvider"] = relationship(
+    service_provider: Mapped[ServiceProvider] = relationship(
         "ServiceProvider",
         back_populates="warehouse_service",
     )
 
-    locations: Mapped[list["WarehouseLocation"]] = relationship(
+    locations: Mapped[list[WarehouseLocation]] = relationship(
         "WarehouseLocation",
         back_populates="warehouse_service",
         cascade="all, delete-orphan",
     )
 
-    services_offered: Mapped[list["WarehouseServiceOffered"]] = relationship(
+    services_offered: Mapped[list[WarehouseServiceOffered]] = relationship(
         "WarehouseServiceOffered",
         back_populates="warehouse_service",
         cascade="all, delete-orphan",
     )
 
-    rental_models: Mapped[list["WarehouseRentalModel"]] = relationship(
+    rental_models: Mapped[list[WarehouseRentalModel]] = relationship(
         "WarehouseRentalModel",
         back_populates="warehouse_service",
         cascade="all, delete-orphan",
     )
 
-    commodities: Mapped[list["WarehouseCommodity"]] = relationship(
+    commodities: Mapped[list[WarehouseCommodity]] = relationship(
         "WarehouseCommodity",
         back_populates="warehouse_service",
         cascade="all, delete-orphan",
     )
 
     communication_preferences: Mapped[
-        list["WarehouseCommunicationPreference"]
+        list[WarehouseCommunicationPreference]
     ] = relationship(
         "WarehouseCommunicationPreference",
         back_populates="warehouse_service",
@@ -131,14 +136,14 @@ class WarehouseLocation(Base):
         nullable=True,
     )
 
-    warehouse_service: Mapped["WarehouseService"] = relationship(
+    warehouse_service: Mapped[WarehouseService] = relationship(
         "WarehouseService",
         back_populates="locations",
     )
 
-    state: Mapped["State | None"] = relationship("State")
-    district: Mapped["District | None"] = relationship("District")
-    tehsil: Mapped["Tehsil | None"] = relationship("Tehsil")
+    state: Mapped[State | None] = relationship("State")
+    district: Mapped[District | None] = relationship("District")
+    tehsil: Mapped[Tehsil | None] = relationship("Tehsil")
 
 
 class WarehouseServiceOffered(Base):
@@ -161,7 +166,7 @@ class WarehouseServiceOffered(Base):
         nullable=False,
     )
 
-    warehouse_service: Mapped["WarehouseService"] = relationship(
+    warehouse_service: Mapped[WarehouseService] = relationship(
         "WarehouseService",
         back_populates="services_offered",
     )
@@ -187,7 +192,7 @@ class WarehouseRentalModel(Base):
         nullable=False,
     )
 
-    warehouse_service: Mapped["WarehouseService"] = relationship(
+    warehouse_service: Mapped[WarehouseService] = relationship(
         "WarehouseService",
         back_populates="rental_models",
     )
@@ -214,12 +219,12 @@ class WarehouseCommodity(Base):
         index=True,
     )
 
-    warehouse_service: Mapped["WarehouseService"] = relationship(
+    warehouse_service: Mapped[WarehouseService] = relationship(
         "WarehouseService",
         back_populates="commodities",
     )
 
-    commodity: Mapped["Commodity"] = relationship(
+    commodity: Mapped[Commodity] = relationship(
         "Commodity",
     )
 
@@ -254,7 +259,7 @@ class WarehouseCommunicationPreference(Base):
     # phone
     # email
 
-    warehouse_service: Mapped["WarehouseService"] = relationship(
+    warehouse_service: Mapped[WarehouseService] = relationship(
         "WarehouseService",
         back_populates="communication_preferences",
     )

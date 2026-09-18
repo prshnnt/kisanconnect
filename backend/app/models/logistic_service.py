@@ -1,4 +1,7 @@
+from __future__ import annotations
+
 from decimal import Decimal
+from typing import TYPE_CHECKING
 
 from sqlalchemy import BigInteger, ForeignKey, Numeric, String, Text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -6,11 +9,15 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.db.base import Base
 from app.db.mixins.timestamp import TimestampMixin
 
+if TYPE_CHECKING:
+    from app.models.commodities import APMC, Commodity, District, State
+    from app.models.service_provider import ServiceProvider
+
 
 class LogisticsService(Base, TimestampMixin):
     __tablename__ = "logistics_services"
 
-    id: Mapped[int] = mapped_column(BigInteger,primary_key=True,autoincrement=True)
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
 
     service_provider_id: Mapped[int] = mapped_column(
         ForeignKey("service_providers.id", ondelete="CASCADE"),
@@ -44,43 +51,43 @@ class LogisticsService(Base, TimestampMixin):
         nullable=True,
     )
 
-    service_provider: Mapped["ServiceProvider"] = relationship(
+    service_provider: Mapped[ServiceProvider] = relationship(
         "ServiceProvider",
         back_populates="logistics_service",
     )
 
-    service_models: Mapped[list["LogisticsServiceModel"]] = relationship(
+    service_models: Mapped[list[LogisticsServiceModel]] = relationship(
         "LogisticsServiceModel",
         back_populates="logistics_service",
         cascade="all, delete-orphan",
     )
 
-    routes: Mapped[list["LogisticsRoute"]] = relationship(
+    routes: Mapped[list[LogisticsRoute]] = relationship(
         "LogisticsRoute",
         back_populates="logistics_service",
         cascade="all, delete-orphan",
     )
 
-    services_offered: Mapped[list["LogisticsServiceOffered"]] = relationship(
+    services_offered: Mapped[list[LogisticsServiceOffered]] = relationship(
         "LogisticsServiceOffered",
         back_populates="logistics_service",
         cascade="all, delete-orphan",
     )
 
-    commodities: Mapped[list["LogisticsCommodity"]] = relationship(
+    commodities: Mapped[list[LogisticsCommodity]] = relationship(
         "LogisticsCommodity",
         back_populates="logistics_service",
         cascade="all, delete-orphan",
     )
 
-    special_equipment: Mapped[list["LogisticsSpecialEquipment"]] = relationship(
+    special_equipment: Mapped[list[LogisticsSpecialEquipment]] = relationship(
         "LogisticsSpecialEquipment",
         back_populates="logistics_service",
         cascade="all, delete-orphan",
     )
 
     communication_preferences: Mapped[
-        list["LogisticsCommunicationPreference"]
+        list[LogisticsCommunicationPreference]
     ] = relationship(
         "LogisticsCommunicationPreference",
         back_populates="logistics_service",
@@ -114,7 +121,7 @@ class LogisticsServiceModel(Base):
     # intra_state
     # hub_and_spoke
 
-    logistics_service: Mapped["LogisticsService"] = relationship(
+    logistics_service: Mapped[LogisticsService] = relationship(
         "LogisticsService",
         back_populates="service_models",
     )
@@ -176,37 +183,37 @@ class LogisticsRoute(Base):
         nullable=True,
     )
 
-    logistics_service: Mapped["LogisticsService"] = relationship(
+    logistics_service: Mapped[LogisticsService] = relationship(
         "LogisticsService",
         back_populates="routes",
     )
 
-    source_state: Mapped["State | None"] = relationship(
+    source_state: Mapped[State | None] = relationship(
         "State",
         foreign_keys=[source_state_id],
     )
 
-    source_district: Mapped["District | None"] = relationship(
+    source_district: Mapped[District | None] = relationship(
         "District",
         foreign_keys=[source_district_id],
     )
 
-    source_apmc: Mapped["APMC | None"] = relationship(
+    source_apmc: Mapped[APMC | None] = relationship(
         "APMC",
         foreign_keys=[source_apmc_id],
     )
 
-    destination_state: Mapped["State | None"] = relationship(
+    destination_state: Mapped[State | None] = relationship(
         "State",
         foreign_keys=[destination_state_id],
     )
 
-    destination_district: Mapped["District | None"] = relationship(
+    destination_district: Mapped[District | None] = relationship(
         "District",
         foreign_keys=[destination_district_id],
     )
 
-    destination_apmc: Mapped["APMC | None"] = relationship(
+    destination_apmc: Mapped[APMC | None] = relationship(
         "APMC",
         foreign_keys=[destination_apmc_id],
     )
@@ -232,7 +239,7 @@ class LogisticsServiceOffered(Base):
         nullable=True,
     )
 
-    logistics_service: Mapped["LogisticsService"] = relationship(
+    logistics_service: Mapped[LogisticsService] = relationship(
         "LogisticsService",
         back_populates="services_offered",
     )
@@ -259,12 +266,12 @@ class LogisticsCommodity(Base):
         index=True,
     )
 
-    logistics_service: Mapped["LogisticsService"] = relationship(
+    logistics_service: Mapped[LogisticsService] = relationship(
         "LogisticsService",
         back_populates="commodities",
     )
 
-    commodity: Mapped["Commodity"] = relationship(
+    commodity: Mapped[Commodity] = relationship(
         "Commodity",
     )
 
@@ -302,7 +309,7 @@ class LogisticsSpecialEquipment(Base):
         nullable=True,
     )
 
-    logistics_service: Mapped["LogisticsService"] = relationship(
+    logistics_service: Mapped[LogisticsService] = relationship(
         "LogisticsService",
         back_populates="special_equipment",
     )
@@ -330,7 +337,7 @@ class LogisticsCommunicationPreference(Base):
     # phone
     # email
 
-    logistics_service: Mapped["LogisticsService"] = relationship(
+    logistics_service: Mapped[LogisticsService] = relationship(
         "LogisticsService",
         back_populates="communication_preferences",
     )

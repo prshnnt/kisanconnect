@@ -1,11 +1,17 @@
-from app.models.commodities import State
-from app.models.service_provider import ServiceProvider
-from app.models.attachment import Attachment
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 from sqlalchemy import BigInteger, ForeignKey, String, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
 from app.db.mixins.timestamp import TimestampMixin
+
+if TYPE_CHECKING:
+    from app.models.attachment import Attachment
+    from app.models.commodities import State
+    from app.models.service_provider import ServiceProvider
 
 
 class WeighmentService(Base, TimestampMixin):
@@ -23,18 +29,18 @@ class WeighmentService(Base, TimestampMixin):
     # weighing_scale
     response_time: Mapped[str | None] = mapped_column(String(100), nullable=True)
 
-    service_provider: Mapped["ServiceProvider"] = relationship(
+    service_provider: Mapped[ServiceProvider] = relationship(
         "ServiceProvider",
         back_populates="weighment_service",
     )
 
-    locations: Mapped[list["WeighmentServiceLocation"]] = relationship(
+    locations: Mapped[list[WeighmentServiceLocation]] = relationship(
         "WeighmentServiceLocation",
         back_populates="weighment_service",
         cascade="all, delete-orphan",
     )
 
-    certificates: Mapped[list["WeighmentCertificate"]] = relationship(
+    certificates: Mapped[list[WeighmentCertificate]] = relationship(
         "WeighmentCertificate",
         back_populates="weighment_service",
         cascade="all, delete-orphan",
@@ -50,9 +56,9 @@ class WeighmentServiceLocation(Base):
 
     state_id: Mapped[int] = mapped_column(ForeignKey("states.id"), nullable=False, index=True)
 
-    weighment_service: Mapped["WeighmentService"] = relationship("WeighmentService", back_populates="locations")
+    weighment_service: Mapped[WeighmentService] = relationship("WeighmentService", back_populates="locations")
 
-    state: Mapped["State"] = relationship("State")
+    state: Mapped[State] = relationship("State")
 
     __table_args__ = (
         UniqueConstraint(
@@ -72,12 +78,12 @@ class WeighmentCertificate(Base):
 
     attachment_id: Mapped[int] = mapped_column(ForeignKey("attachments.id", ondelete="CASCADE"), nullable=False, index=True)
 
-    weighment_service: Mapped["WeighmentService"] = relationship(
+    weighment_service: Mapped[WeighmentService] = relationship(
         "WeighmentService",
         back_populates="certificates",
     )
 
-    attachment: Mapped["Attachment"] = relationship(
+    attachment: Mapped[Attachment] = relationship(
         "Attachment",
     )
 

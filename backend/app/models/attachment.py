@@ -1,10 +1,16 @@
-from datetime import datetime
+from __future__ import annotations
 
-from sqlalchemy import BigInteger, Text, String, DateTime
+from datetime import datetime
+from typing import TYPE_CHECKING
+
+from sqlalchemy import BigInteger, DateTime, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
-from app.models.trade_licence import TradeLicenseAttachment
+
+if TYPE_CHECKING:
+    from app.models.trade_licence import TradeLicenseAttachment
+
 
 class Attachment(Base):
     __tablename__ = "attachments"
@@ -40,9 +46,7 @@ class Attachment(Base):
         nullable=True,
     )
 
-    trade_license_attachments: Mapped[
-        list["TradeLicenseAttachment"]
-    ] = relationship(
+    trade_license_attachments: Mapped[list[TradeLicenseAttachment]] = relationship(
         "TradeLicenseAttachment",
         back_populates="attachment",
     )
