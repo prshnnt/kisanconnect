@@ -107,12 +107,14 @@ dependencies = [
     { name = "celery" },
     { name = "fastapi" },
     { name = "httpx" },
+    { name = "psycopg2" },
     { name = "pydantic" },
     { name = "pydantic-settings" },
     { name = "python-jose", extra = ["cryptography"] },
     { name = "python-multipart" },
     { name = "redis" },
     { name = "sqlalchemy" },
+    { name = "uvicorn" },
 ]
 
 [package.metadata]
@@ -123,12 +125,14 @@ requires-dist = [
     { name = "celery", specifier = ">=5.6.3" },
     { name = "fastapi", specifier = ">=0.141.1" },
     { name = "httpx", specifier = ">=0.27.0" },
+    { name = "psycopg2", specifier = ">=2.9.13" },
     { name = "pydantic", specifier = ">=2.13.5" },
     { name = "pydantic-settings", specifier = ">=2.15.0" },
     { name = "python-jose", extras = ["cryptography"], specifier = ">=3.3.0" },
     { name = "python-multipart", specifier = ">=0.0.9" },
     { name = "redis", specifier = ">=8.1.0" },
     { name = "sqlalchemy", specifier = ">=2.0.54" },
+    { name = "uvicorn", specifier = ">=0.53.0" },
 ]
 
 [[package]]
@@ -528,6 +532,16 @@ wheels = [
 ]
 
 [[package]]
+name = "psycopg2"
+version = "2.9.13"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/91/81/6ea19b8b28feb9405c8c87a307776614d6e404bdb98467d1ce10a39d2c1d/psycopg2-2.9.13.tar.gz", hash = "sha256:d36784fc2dae69523ba4b79c7d1d1b4d6e83e87836874f111262f4db940b16a6", size = 378068, upload-time = "2026-09-09T23:56:21.749Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/b9/f9/f6e9d47ea04e09282c618f5eeb67634f39ea4b04acedd0a6d8da4d986d50/psycopg2-2.9.13-cp314-cp314-win_amd64.whl", hash = "sha256:a6f54fd8e0024f35240866b5dfff9ead2a0dbd33b8096eec438bc6093412842d", size = 2866943, upload-time = "2026-09-09T23:54:01.268Z" },
+    { url = "https://files.pythonhosted.org/packages/44/0f/da6a374ed5e3b4040c53b29ab57b8b26c0872900cf8aed2265790889a1e3/psycopg2-2.9.13-cp315-cp315-win_amd64.whl", hash = "sha256:0d2fc7eedfaca0586dcf1476454598428d0d8471d3b5cb55f92015a5f9d0af40", size = 2863865, upload-time = "2026-09-09T23:54:03.316Z" },
+]
+
+[[package]]
 name = "pyasn1"
 version = "0.6.4"
 source = { registry = "https://pypi.org/simple" }
@@ -773,6 +787,19 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/81/5b/879b2f932adfa7a053c360d50bc896c977fa6426109185f7c12ebdd0cb9d/tzlocal-5.4.4.tar.gz", hash = "sha256:8dbb8660838688a7b6ba4fed31d18dedf842afb4d47ca050d6d891c2c15f3be4", size = 31170, upload-time = "2026-06-29T08:03:40.026Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/9e/a4/017a7a6cbe387d961a688ec31364ae60a5c4e22c96ae9921b79a947c855d/tzlocal-5.4.4-py3-none-any.whl", hash = "sha256:aae09f0126a8a86fa736be266eb4a471380d26a0de3bc14844e7821fee3e2a15", size = 18115, upload-time = "2026-06-29T08:03:38.666Z" },
+]
+
+[[package]]
+name = "uvicorn"
+version = "0.53.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "click" },
+    { name = "h11" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/5d/ad/04bbb797c84fc1f26cb171f7394716f4865ffb8d8c5e1eef42565c2dfa6b/uvicorn-0.53.0.tar.gz", hash = "sha256:a9356f0cb89b3b8621529c5d5eebd69bfe154f4c3f68b4cf2de47e45fa855c2e", size = 110881, upload-time = "2026-09-14T07:44:23.815Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/76/18/0eea75741ee812e9f598b687619ce2454f6c3a1c5cd21ea990ec6bd26f45/uvicorn-0.53.0-py3-none-any.whl", hash = "sha256:e8dca71ec86dce5f04e333f0d56cdedf942446e6643b9cea1af0d6d3a02cb03e", size = 87081, upload-time = "2026-09-14T07:44:22.179Z" },
 ]
 
 [[package]]
