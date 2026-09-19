@@ -10,7 +10,11 @@ from app.db.mixins.timestamp import TimestampMixin
 from app.models.enums import CommunicationMethod, ServiceProviderType
 
 if TYPE_CHECKING:
-    from app.models.assaying_service import AssayingService
+    from app.models.assaying_service import (
+        AssayingBooking,
+        AssayingService,
+        AssayingServiceCatalog,
+    )
     from app.models.commodities import APMC, District, State, Tehsil
     from app.models.logistic_service import LogisticsService
     from app.models.users import User
@@ -74,6 +78,19 @@ class ServiceProvider(Base, TimestampMixin):
         uselist=False,
         cascade="all, delete-orphan",
     )
+
+    assaying_catalogs: Mapped[list[AssayingServiceCatalog]] = relationship(
+        "AssayingServiceCatalog",
+        back_populates="service_provider",
+        cascade="all, delete-orphan",
+    )
+
+    assaying_bookings: Mapped[list[AssayingBooking]] = relationship(
+        "AssayingBooking",
+        foreign_keys="AssayingBooking.service_provider_id",
+        back_populates="service_provider",
+    )
+
 
 
 class ServiceProviderService(Base):

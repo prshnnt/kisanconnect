@@ -13,6 +13,7 @@ from app.db.mixins.uuid import UUIDMixin
 from app.models.enums import AddressType, Gender, UserRelationshipType, UserRoleType
 
 if TYPE_CHECKING:
+    from app.models.assaying_service import AssayingBooking
     from app.models.bank_account import BankAccount
     from app.models.buyer import Buyer
     from app.models.commodities import APMC, District, State, Tehsil
@@ -76,6 +77,12 @@ class User(
     buyer: Mapped[Buyer | None] = relationship("Buyer", back_populates="user", uselist=False, cascade="all, delete-orphan")
 
     service_provider: Mapped[ServiceProvider | None] = relationship("ServiceProvider", back_populates="user", uselist=False, cascade="all, delete-orphan")
+    assaying_booking_requests: Mapped[list[AssayingBooking]] = relationship(
+        "AssayingBooking",
+        foreign_keys="AssayingBooking.seeker_user_id",
+        back_populates="seeker_user",
+        cascade="all, delete-orphan",
+    )
 
 
 class UserRole(Base, TimestampMixin):

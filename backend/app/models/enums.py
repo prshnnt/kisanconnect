@@ -86,3 +86,39 @@ class AddressType(StrEnum):
     PERMANENT = "permanent"
     COMMUNICATION = "communication"
     CURRENT = "current"
+
+
+class AssayingLocationType(StrEnum):
+    INSIDE_APMC = "inside_apmc"
+    OUTSIDE_APMC = "outside_apmc"
+
+
+class AssayingServiceModel(StrEnum):
+    DIGITAL = "digital"
+    MANUAL = "manual"
+
+
+class AssayingDeliveryType(StrEnum):
+    ASSAYER_PICKUP = "assayer_pickup"
+    FARMER_DROP = "farmer_drop"
+    LAB_VISIT = "lab_visit"
+    ON_SITE = "on_site"
+
+
+class AssayingNegotiationStatus(StrEnum):
+    NA = "na"
+    REQUESTED = "requested"
+    COUNTER_OFFERED = "counter_offered"
+    ACCEPTED = "accepted"
+    REJECTED = "rejected"
+
+
+class AssayingBookingStatus(StrEnum):
+    REQUESTED = "requested"
+    ACCEPTED = "accepted"
+    SAMPLE_COLLECTED = "sample_collected"
+    TESTING = "testing"
+    COMPLETED = "completed"
+    CANCELLED = "cancelled"
+    REJECTED = "rejected"
+
