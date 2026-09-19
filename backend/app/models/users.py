@@ -3,13 +3,14 @@ from __future__ import annotations
 from datetime import date
 from typing import TYPE_CHECKING
 
-from sqlalchemy import BigInteger, Date, ForeignKey, String, UniqueConstraint
+from sqlalchemy import BigInteger, Date, Enum as SQLEnum, ForeignKey, String, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
 from app.db.mixins.soft_delete import SoftDeleteMixin
 from app.db.mixins.timestamp import TimestampMixin
 from app.db.mixins.uuid import UUIDMixin
+from app.models.enums import AddressType, Gender, UserRelationshipType, UserRoleType
 
 if TYPE_CHECKING:
     from app.models.bank_account import BankAccount
@@ -35,11 +36,27 @@ class User(
     middle_name: Mapped[str | None] = mapped_column(String(100), nullable=True)
     last_name: Mapped[str | None] = mapped_column(String(100), nullable=True)
 
-    relationship_type: Mapped[str | None] = mapped_column(String(20), nullable=True)
+    relationship_type: Mapped[UserRelationshipType | None] = mapped_column(
+        SQLEnum(
+            UserRelationshipType,
+            native_enum=False,
+            length=20,
+            values_callable=lambda x: [e.value for e in x],
+        ),
+        nullable=True,
+    )
     relationship_name: Mapped[str | None] = mapped_column(String(200), nullable=True)
 
     date_of_birth: Mapped[date | None] = mapped_column(Date, nullable=True)
-    gender: Mapped[str | None] = mapped_column(String(30), nullable=True)
+    gender: Mapped[Gender | None] = mapped_column(
+        SQLEnum(
+            Gender,
+            native_enum=False,
+            length=30,
+            values_callable=lambda x: [e.value for e in x],
+        ),
+        nullable=True,
+    )
 
     mobile_number: Mapped[str] = mapped_column(String(20), nullable=False, unique=True, index=True)
     alternate_mobile_number: Mapped[str | None] = mapped_column(String(20), nullable=True)
@@ -68,7 +85,15 @@ class UserRole(Base, TimestampMixin):
 
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
 
-    role_type: Mapped[str] = mapped_column(String(30), nullable=False)
+    role_type: Mapped[UserRoleType] = mapped_column(
+        SQLEnum(
+            UserRoleType,
+            native_enum=False,
+            length=30,
+            values_callable=lambda x: [e.value for e in x],
+        ),
+        nullable=False,
+    )
 
     # Relationships
     user: Mapped[User] = relationship("User", back_populates="roles")
@@ -97,7 +122,15 @@ class UserAddress(Base, TimestampMixin):
 
     city: Mapped[str | None] = mapped_column(String(100), nullable=True)
 
-    address_type: Mapped[str] = mapped_column(String(30), nullable=False)
+    address_type: Mapped[AddressType] = mapped_column(
+        SQLEnum(
+            AddressType,
+            native_enum=False,
+            length=30,
+            values_callable=lambda x: [e.value for e in x],
+        ),
+        nullable=False,
+    )
 
     # Relationships
     user: Mapped[User] = relationship("User", back_populates="addresses")

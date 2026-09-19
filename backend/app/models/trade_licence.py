@@ -3,11 +3,12 @@ from __future__ import annotations
 from datetime import date
 from typing import TYPE_CHECKING
 
-from sqlalchemy import BigInteger, Date, ForeignKey, String
+from sqlalchemy import BigInteger, Date, Enum as SQLEnum, ForeignKey, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
 from app.db.mixins.timestamp import TimestampMixin
+from app.models.enums import APMCType, TradeLicenseStatus, TradeLicenseType
 
 if TYPE_CHECKING:
     from app.models.attachment import Attachment
@@ -30,11 +31,27 @@ class TradeLicense(Base, TimestampMixin):
 
     operating_apmc_id: Mapped[int | None] = mapped_column(ForeignKey("apmcs.id"), nullable=True, index=True)
 
-    license_type: Mapped[str | None] = mapped_column(String(30), nullable=True)
+    license_type: Mapped[TradeLicenseType | None] = mapped_column(
+        SQLEnum(
+            TradeLicenseType,
+            native_enum=False,
+            length=30,
+            values_callable=lambda x: [e.value for e in x],
+        ),
+        nullable=True,
+    )
     # single
     # unified
 
-    apmc_type: Mapped[str | None] = mapped_column(String(30), nullable=True)
+    apmc_type: Mapped[APMCType | None] = mapped_column(
+        SQLEnum(
+            APMCType,
+            native_enum=False,
+            length=30,
+            values_callable=lambda x: [e.value for e in x],
+        ),
+        nullable=True,
+    )
     # enam
     # non_enam
 
@@ -44,7 +61,15 @@ class TradeLicense(Base, TimestampMixin):
 
     expiry_date: Mapped[date | None] = mapped_column(Date, nullable=True)
 
-    status: Mapped[str | None] = mapped_column(String(30), nullable=True)
+    status: Mapped[TradeLicenseStatus | None] = mapped_column(
+        SQLEnum(
+            TradeLicenseStatus,
+            native_enum=False,
+            length=30,
+            values_callable=lambda x: [e.value for e in x],
+        ),
+        nullable=True,
+    )
     # active
     # expired
     # suspended

@@ -3,11 +3,12 @@ from __future__ import annotations
 from decimal import Decimal
 from typing import TYPE_CHECKING
 
-from sqlalchemy import BigInteger, ForeignKey, Numeric, String, Text, UniqueConstraint
+from sqlalchemy import BigInteger, Enum as SQLEnum, ForeignKey, Numeric, String, Text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
 from app.db.mixins.timestamp import TimestampMixin
+from app.models.enums import CommunicationMethod, LogisticsServiceModelType
 
 if TYPE_CHECKING:
     from app.models.commodities import APMC, Commodity, District, State
@@ -110,8 +111,13 @@ class LogisticsServiceModel(Base):
         index=True,
     )
 
-    service_model: Mapped[str | None] = mapped_column(
-        String(50),
+    service_model: Mapped[LogisticsServiceModelType | None] = mapped_column(
+        SQLEnum(
+            LogisticsServiceModelType,
+            native_enum=False,
+            length=50,
+            values_callable=lambda x: [e.value for e in x],
+        ),
         nullable=True,
     )
     # door_to_door
@@ -330,8 +336,13 @@ class LogisticsCommunicationPreference(Base):
         index=True,
     )
 
-    communication_method: Mapped[str | None] = mapped_column(
-        String(20),
+    communication_method: Mapped[CommunicationMethod | None] = mapped_column(
+        SQLEnum(
+            CommunicationMethod,
+            native_enum=False,
+            length=20,
+            values_callable=lambda x: [e.value for e in x],
+        ),
         nullable=True,
     )
     # phone

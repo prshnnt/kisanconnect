@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING
 from sqlalchemy import (
     BigInteger,
     Boolean,
+    Enum as SQLEnum,
     ForeignKey,
     String,
     Text,
@@ -14,6 +15,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
 from app.db.mixins.timestamp import TimestampMixin
+from app.models.enums import AssayingTestingMethodType, CommunicationMethod
 
 if TYPE_CHECKING:
     from app.models.attachment import Attachment
@@ -110,8 +112,13 @@ class AssayingTestingMethod(Base):
         index=True,
     )
 
-    testing_method: Mapped[str | None] = mapped_column(
-        String(30),
+    testing_method: Mapped[AssayingTestingMethodType | None] = mapped_column(
+        SQLEnum(
+            AssayingTestingMethodType,
+            native_enum=False,
+            length=30,
+            values_callable=lambda x: [e.value for e in x],
+        ),
         nullable=True,
     )
     # physical
@@ -247,8 +254,13 @@ class AssayingCommunicationPreference(Base):
         index=True,
     )
 
-    communication_method: Mapped[str | None] = mapped_column(
-        String(20),
+    communication_method: Mapped[CommunicationMethod | None] = mapped_column(
+        SQLEnum(
+            CommunicationMethod,
+            native_enum=False,
+            length=20,
+            values_callable=lambda x: [e.value for e in x],
+        ),
         nullable=True,
     )
     # phone

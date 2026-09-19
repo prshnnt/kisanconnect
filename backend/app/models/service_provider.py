@@ -2,11 +2,12 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from sqlalchemy import BigInteger, ForeignKey, String, UniqueConstraint
+from sqlalchemy import BigInteger, Enum as SQLEnum, ForeignKey, String, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
 from app.db.mixins.timestamp import TimestampMixin
+from app.models.enums import CommunicationMethod, ServiceProviderType
 
 if TYPE_CHECKING:
     from app.models.assaying_service import AssayingService
@@ -82,7 +83,15 @@ class ServiceProviderService(Base):
 
     service_provider_id: Mapped[int] = mapped_column(ForeignKey("service_providers.id", ondelete="CASCADE"), nullable=False, index=True)
 
-    service_type: Mapped[str] = mapped_column(String(50), nullable=False)
+    service_type: Mapped[ServiceProviderType] = mapped_column(
+        SQLEnum(
+            ServiceProviderType,
+            native_enum=False,
+            length=50,
+            values_callable=lambda x: [e.value for e in x],
+        ),
+        nullable=False,
+    )
     # weightment
     # warehouse
     # logistics
@@ -132,7 +141,15 @@ class ServiceProviderCommunicationPreference(Base, TimestampMixin):
 
     service_provider_id: Mapped[int] = mapped_column(ForeignKey("service_providers.id", ondelete="CASCADE"), nullable=False, index=True)
 
-    communication_method: Mapped[str | None] = mapped_column(String(20), nullable=True)
+    communication_method: Mapped[CommunicationMethod | None] = mapped_column(
+        SQLEnum(
+            CommunicationMethod,
+            native_enum=False,
+            length=20,
+            values_callable=lambda x: [e.value for e in x],
+        ),
+        nullable=True,
+    )
     # phone
     # email
     service_provider: Mapped[ServiceProvider] = relationship("ServiceProvider", back_populates="communication_preferences")

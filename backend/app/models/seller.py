@@ -2,11 +2,12 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from sqlalchemy import BigInteger, ForeignKey, String, UniqueConstraint
+from sqlalchemy import BigInteger, Enum as SQLEnum, ForeignKey, String, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
 from app.db.mixins.timestamp import TimestampMixin
+from app.models.enums import SellerType
 
 if TYPE_CHECKING:
     from app.models.commodities import APMC, Commodity, State
@@ -20,7 +21,15 @@ class Seller(Base, TimestampMixin):
 
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), nullable=False, unique=True, index=True)
 
-    seller_type: Mapped[str] = mapped_column(String(30), nullable=False)
+    seller_type: Mapped[SellerType] = mapped_column(
+        SQLEnum(
+            SellerType,
+            native_enum=False,
+            length=30,
+            values_callable=lambda x: [e.value for e in x],
+        ),
+        nullable=False,
+    )
     # farmer
     # fpo
 

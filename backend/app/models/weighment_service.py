@@ -2,11 +2,12 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from sqlalchemy import BigInteger, ForeignKey, String, UniqueConstraint
+from sqlalchemy import BigInteger, Enum as SQLEnum, ForeignKey, String, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
 from app.db.mixins.timestamp import TimestampMixin
+from app.models.enums import WeighingMethod, WeighmentLocationType
 
 if TYPE_CHECKING:
     from app.models.attachment import Attachment
@@ -20,11 +21,27 @@ class WeighmentService(Base, TimestampMixin):
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
     service_provider_id: Mapped[int] = mapped_column(ForeignKey("service_providers.id", ondelete="CASCADE"), nullable=False, unique=True, index=True)
     business_name: Mapped[str | None] = mapped_column(String(200), nullable=True)
-    apmc_location_type: Mapped[str | None] = mapped_column(String(30), nullable=True)
+    apmc_location_type: Mapped[WeighmentLocationType | None] = mapped_column(
+        SQLEnum(
+            WeighmentLocationType,
+            native_enum=False,
+            length=30,
+            values_callable=lambda x: [e.value for e in x],
+        ),
+        nullable=True,
+    )
     # inside_apmc
     # outside_apmc
 
-    weighing_method: Mapped[str | None] = mapped_column(String(50), nullable=True)
+    weighing_method: Mapped[WeighingMethod | None] = mapped_column(
+        SQLEnum(
+            WeighingMethod,
+            native_enum=False,
+            length=50,
+            values_callable=lambda x: [e.value for e in x],
+        ),
+        nullable=True,
+    )
     # weigh_bridge
     # weighing_scale
     response_time: Mapped[str | None] = mapped_column(String(100), nullable=True)

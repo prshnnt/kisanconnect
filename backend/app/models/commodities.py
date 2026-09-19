@@ -2,11 +2,13 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from sqlalchemy import BigInteger, Boolean, ForeignKey, String, Text
+from decimal import Decimal
+from sqlalchemy import BigInteger, Boolean, Enum as SQLEnum, ForeignKey, Numeric, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
 from app.db.mixins.timestamp import TimestampMixin
+from app.models.enums import APMCType
 
 if TYPE_CHECKING:
     from app.models.buyer import BuyerCommodity
@@ -67,7 +69,15 @@ class APMC(Base, TimestampMixin):
 
     district_id: Mapped[int | None] = mapped_column(ForeignKey("districts.id"), nullable=True, index=True)
 
-    apmc_type: Mapped[str | None] = mapped_column(String(30), nullable=True)
+    apmc_type: Mapped[APMCType | None] = mapped_column(
+        SQLEnum(
+            APMCType,
+            native_enum=False,
+            length=30,
+            values_callable=lambda x: [e.value for e in x],
+        ),
+        nullable=True,
+    )
     # enam
     # non_enam
 
@@ -96,3 +106,24 @@ class Commodity(Base, TimestampMixin):
     seller_commodities: Mapped[list[SellerCommodity]] = relationship("SellerCommodity", back_populates="commodity")
 
     buyer_commodities: Mapped[list[BuyerCommodity]] = relationship("BuyerCommodity", back_populates="commodity")
+
+class CommodityVariety(Base, TimestampMixin):
+    __tablename__ = "commodity_varieties"
+
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
+    commodity_id: Mapped[int] = mapped_column(
+        BigInteger, nullable=False, index=True
+    )
+    name: Mapped[str] = mapped_column(String(150), nullable=False)
+    code: Mapped[str | None] = mapped_column(String(50), nullable=True)
+    is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
+
+
+class BagType(Base, TimestampMixin):
+    __tablename__ = "bag_types"
+
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
+    name: Mapped[str] = mapped_column(String(100), nullable=False)
+    material: Mapped[str | None] = mapped_column(String(50), nullable=True)
+    weight_kg: Mapped[Decimal] = mapped_column(Numeric(10, 2), nullable=False)
+    is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
