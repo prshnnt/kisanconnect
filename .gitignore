@@ -36,3 +36,9 @@ dist-ssr
 *.sln
 *.sw?
 *.zip
+.env
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+.venv/

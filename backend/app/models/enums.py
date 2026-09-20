@@ -1,73 +1,18 @@
-from __future__ import annotations
+"""One place for every enum. Stored as VARCHAR (native_enum=False) so adding a value needs no migration."""
 
 from enum import StrEnum
 
 
-class AssayingTestingMethodType(StrEnum):
-    PHYSICAL = "physical"
-    CHEMICAL = "chemical"
-
-
-class CommunicationMethod(StrEnum):
-    PHONE = "phone"
-    EMAIL = "email"
+class Role(StrEnum):
+    SELLER = "seller"
+    BUYER = "buyer"
+    SERVICE_PROVIDER = "service_provider"
+    ADMIN = "admin"
 
 
 class SellerType(StrEnum):
     FARMER = "farmer"
     FPO = "fpo"
-
-
-class APMCType(StrEnum):
-    ENAM = "enam"
-    NON_ENAM = "non_enam"
-
-
-class TradeLicenseType(StrEnum):
-    SINGLE = "single"
-    UNIFIED = "unified"
-
-
-class TradeLicenseStatus(StrEnum):
-    ACTIVE = "active"
-    EXPIRED = "expired"
-    SUSPENDED = "suspended"
-
-
-class ServiceProviderType(StrEnum):
-    WEIGHMENT = "weighment"
-    WAREHOUSE = "warehouse"
-    LOGISTICS = "logistics"
-    ASSAYING = "assaying"
-    ASSURANCE = "assurance"
-    PACKAGING = "packaging"
-    GRADING_AND_SORTING = "grading_and_sorting"
-    LABOUR = "labour"
-
-
-class WeighmentLocationType(StrEnum):
-    INSIDE_APMC = "inside_apmc"
-    OUTSIDE_APMC = "outside_apmc"
-
-
-class WeighingMethod(StrEnum):
-    WEIGH_BRIDGE = "weigh_bridge"
-    WEIGHING_SCALE = "weighing_scale"
-
-
-class LogisticsServiceModelType(StrEnum):
-    DOOR_TO_DOOR = "door_to_door"
-    FIRST_MILE_PICKUP = "first_mile_pickup"
-    LAST_MILE_PICKUP = "last_mile_pickup"
-    INTER_STATE = "inter_state"
-    INTRA_STATE = "intra_state"
-    HUB_AND_SPOKE = "hub_and_spoke"
-
-
-class UserRelationshipType(StrEnum):
-    SO = "s/o"
-    DO = "d/o"
-    WO = "w/o"
 
 
 class Gender(StrEnum):
@@ -76,73 +21,89 @@ class Gender(StrEnum):
     OTHER = "other"
 
 
-class UserRoleType(StrEnum):
+class OwnerType(StrEnum):
+    """Polymorphic owner for Address / Attachment / CommodityLink."""
+
+    USER = "user"
     SELLER = "seller"
     BUYER = "buyer"
-    SERVICE_PROVIDER = "service_provider"
+    LOT = "lot"
+    SUPPLY = "supply"
+    DEMAND = "demand"
+    PROVIDER = "provider"
+    CATALOG = "catalog"
+    LICENSE = "license"
+    BOOKING = "booking"
+    AGREEMENT = "agreement"
+    BILL = "bill"
 
 
-class AddressType(StrEnum):
+class AddressKind(StrEnum):
     PERMANENT = "permanent"
-    COMMUNICATION = "communication"
     CURRENT = "current"
+    SERVICE_AREA = "service_area"
+    PREFERRED = "preferred"
+    LOT = "lot"
+    DELIVERY = "delivery"
+    PICKUP = "pickup"
+    DROP = "drop"
 
 
-class AssayingLocationType(StrEnum):
+class CommodityRole(StrEnum):
+    PREFERRED = "preferred"
+    EXPERTISE = "expertise"
+    HANDLED = "handled"
+
+
+class ApmcType(StrEnum):
+    ENAM = "enam"
+    NON_ENAM = "non_enam"
+
+
+class Venue(StrEnum):
+    """Inside/Outside APMC tab that splits most screens."""
+
     INSIDE_APMC = "inside_apmc"
     OUTSIDE_APMC = "outside_apmc"
 
 
-class AssayingServiceModel(StrEnum):
-    DIGITAL = "digital"
-    MANUAL = "manual"
+class LicenseStatus(StrEnum):
+    ACTIVE = "active"
+    EXPIRED = "expired"
+    SUSPENDED = "suspended"
 
 
-class AssayingDeliveryType(StrEnum):
-    ASSAYER_PICKUP = "assayer_pickup"
-    FARMER_DROP = "farmer_drop"
-    LAB_VISIT = "lab_visit"
-    ON_SITE = "on_site"
+class SaleType(StrEnum):
+    PRIMARY = "primary"
+    SECONDARY = "secondary"
 
 
-class AssayingNegotiationStatus(StrEnum):
-    NA = "na"
-    REQUESTED = "requested"
-    COUNTER_OFFERED = "counter_offered"
-    ACCEPTED = "accepted"
-    REJECTED = "rejected"
+class LotType(StrEnum):
+    ADVANCE = "advance"
+    OUTSIDE_APMC = "outside_apmc"
 
 
-class AssayingBookingStatus(StrEnum):
-    REQUESTED = "requested"
-    ACCEPTED = "accepted"
-    SAMPLE_COLLECTED = "sample_collected"
-    TESTING = "testing"
-    COMPLETED = "completed"
+class LotStatus(StrEnum):
+    DRAFT = "draft"
+    ACTIVE = "active"
+    AUCTIONED = "auctioned"
+    SOLD = "sold"
     CANCELLED = "cancelled"
-    REJECTED = "rejected"
+    EXPIRED = "expired"
 
 
-class AuctionBidType(StrEnum):
-    OPEN = "open"
-    CLOSED = "closed"
-
-
-class AuctionDeclarationType(StrEnum):
-    MANUAL = "manual"
-    AUTO = "auto"
+class DeliveryMode(StrEnum):
+    DELIVERY = "delivery"
+    PICKUP = "pickup"
 
 
 class AuctionStatus(StrEnum):
-    DRAFT = "draft"
     SCHEDULED = "scheduled"
     LIVE = "live"
     CLOSED = "closed"
     DECLARED = "declared"
-    ACCEPTED = "accepted"
     REJECTED = "rejected"
     CANCELLED = "cancelled"
-    EXPIRED = "expired"
 
 
 class BidStatus(StrEnum):
@@ -152,47 +113,18 @@ class BidStatus(StrEnum):
     REJECTED = "rejected"
 
 
-class WeighmentBookingStatus(StrEnum):
-    REQUESTED = "requested"
-    CONFIRMED = "confirmed"
-    VEHICLE_ARRIVED = "vehicle_arrived"
-    WEIGHED = "weighed"
-    COMPLETED = "completed"
-    CANCELLED = "cancelled"
-    REJECTED = "rejected"
-
-
-class WeighmentEquipmentType(StrEnum):
-    WEIGH_BRIDGE = "weigh_bridge"
-    DIGITAL_SCALE = "digital_scale"
-    PLATFORM_SCALE = "platform_scale"
-
-
-class TradeLocationType(StrEnum):
-    INSIDE_APMC = "inside_apmc"
-    OUTSIDE_APMC = "outside_apmc"
-
-
-class AgreementApprovalStatus(StrEnum):
-    PENDING = "pending"
-    APPROVED = "approved"
-    REJECTED = "rejected"
-
-
-class SaleAgreementStatus(StrEnum):
-    DRAFT = "draft"
-    PENDING_APPROVAL = "pending_approval"
-    APPROVED = "approved"
-    REJECTED = "rejected"
-    CANCELLED = "cancelled"
-
-
-class TradeConfirmationStatus(StrEnum):
+class TradeStatus(StrEnum):
     DECLARED = "declared"
     CONFIRMED = "confirmed"
     WEIGHMENT_PENDING = "weighment_pending"
     AGREEMENT_GENERATED = "agreement_generated"
     CANCELLED = "cancelled"
+
+
+class ApprovalStatus(StrEnum):
+    PENDING = "pending"
+    APPROVED = "approved"
+    REJECTED = "rejected"
 
 
 class PaymentStatus(StrEnum):
@@ -203,4 +135,44 @@ class PaymentStatus(StrEnum):
     FAILED = "failed"
 
 
+class ServiceType(StrEnum):
+    WEIGHMENT = "weighment"
+    WAREHOUSE = "warehouse"
+    LOGISTICS = "logistics"
+    ASSAYING = "assaying"
+    ASSURANCE = "assurance"
+    PACKAGING = "packaging"
+    GRADING = "grading"
+    LABOUR = "labour"
 
+
+class BookingStatus(StrEnum):
+    REQUESTED = "requested"
+    NEGOTIATING = "negotiating"
+    ACCEPTED = "accepted"
+    IN_PROGRESS = "in_progress"
+    COMPLETED = "completed"
+    CANCELLED = "cancelled"
+    REJECTED = "rejected"
+
+
+class NegotiationStatus(StrEnum):
+    NA = "na"
+    REQUESTED = "requested"
+    COUNTERED = "countered"
+    ACCEPTED = "accepted"
+    REJECTED = "rejected"
+
+
+class GateExitType(StrEnum):
+    POST_TRADE = "post_trade"
+    GOODS_RETURN = "goods_return"
+
+
+class OtpPurpose(StrEnum):
+    LOGIN = "login"
+    REGISTER = "register"
+    VERIFY_MOBILE = "verify_mobile"
+    VERIFY_EMAIL = "verify_email"
+    DELETE_ACCOUNT = "delete_account"
+    RESET_PASSWORD = "reset_password"
