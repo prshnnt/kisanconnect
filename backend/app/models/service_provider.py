@@ -19,7 +19,11 @@ if TYPE_CHECKING:
     from app.models.logistic_service import LogisticsService
     from app.models.users import User
     from app.models.warehouse_service import WarehouseService
-    from app.models.weighment_service import WeighmentService
+    from app.models.weighment_service import (
+        WeighmentBooking,
+        WeighmentCatalog,
+        WeighmentService,
+    )
 
 
 class ServiceProvider(Base, TimestampMixin):
@@ -90,6 +94,19 @@ class ServiceProvider(Base, TimestampMixin):
         foreign_keys="AssayingBooking.service_provider_id",
         back_populates="service_provider",
     )
+
+    weighment_catalogs: Mapped[list[WeighmentCatalog]] = relationship(
+        "WeighmentCatalog",
+        back_populates="service_provider",
+        cascade="all, delete-orphan",
+    )
+
+    weighment_bookings: Mapped[list[WeighmentBooking]] = relationship(
+        "WeighmentBooking",
+        foreign_keys="WeighmentBooking.service_provider_id",
+        back_populates="service_provider",
+    )
+
 
 
 

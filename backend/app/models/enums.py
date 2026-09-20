@@ -122,3 +122,85 @@ class AssayingBookingStatus(StrEnum):
     CANCELLED = "cancelled"
     REJECTED = "rejected"
 
+
+class AuctionBidType(StrEnum):
+    OPEN = "open"
+    CLOSED = "closed"
+
+
+class AuctionDeclarationType(StrEnum):
+    MANUAL = "manual"
+    AUTO = "auto"
+
+
+class AuctionStatus(StrEnum):
+    DRAFT = "draft"
+    SCHEDULED = "scheduled"
+    LIVE = "live"
+    CLOSED = "closed"
+    DECLARED = "declared"
+    ACCEPTED = "accepted"
+    REJECTED = "rejected"
+    CANCELLED = "cancelled"
+    EXPIRED = "expired"
+
+
+class BidStatus(StrEnum):
+    ACTIVE = "active"
+    OUTBID = "outbid"
+    WINNING = "winning"
+    REJECTED = "rejected"
+
+
+class WeighmentBookingStatus(StrEnum):
+    REQUESTED = "requested"
+    CONFIRMED = "confirmed"
+    VEHICLE_ARRIVED = "vehicle_arrived"
+    WEIGHED = "weighed"
+    COMPLETED = "completed"
+    CANCELLED = "cancelled"
+    REJECTED = "rejected"
+
+
+class WeighmentEquipmentType(StrEnum):
+    WEIGH_BRIDGE = "weigh_bridge"
+    DIGITAL_SCALE = "digital_scale"
+    PLATFORM_SCALE = "platform_scale"
+
+
+class TradeLocationType(StrEnum):
+    INSIDE_APMC = "inside_apmc"
+    OUTSIDE_APMC = "outside_apmc"
+
+
+class AgreementApprovalStatus(StrEnum):
+    PENDING = "pending"
+    APPROVED = "approved"
+    REJECTED = "rejected"
+
+
+class SaleAgreementStatus(StrEnum):
+    DRAFT = "draft"
+    PENDING_APPROVAL = "pending_approval"
+    APPROVED = "approved"
+    REJECTED = "rejected"
+    CANCELLED = "cancelled"
+
+
+class TradeConfirmationStatus(StrEnum):
+    DECLARED = "declared"
+    CONFIRMED = "confirmed"
+    WEIGHMENT_PENDING = "weighment_pending"
+    AGREEMENT_GENERATED = "agreement_generated"
+    CANCELLED = "cancelled"
+
+
+class PaymentStatus(StrEnum):
+    PENDING = "pending"
+    PARTIAL = "partial"
+    PAID = "paid"
+    OVERDUE = "overdue"
+    FAILED = "failed"
+
+
+

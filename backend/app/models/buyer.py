@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from sqlalchemy import BigInteger, ForeignKey, UniqueConstraint
+from sqlalchemy import BigInteger, ForeignKey, String, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
@@ -20,6 +20,11 @@ class Buyer(Base, TimestampMixin):
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
 
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), nullable=False, unique=True, index=True)
+
+    organization_name: Mapped[str | None] = mapped_column(String(200), nullable=True, index=True)
+    contact_person: Mapped[str | None] = mapped_column(String(150), nullable=True)
+    gstin: Mapped[str | None] = mapped_column(String(20), nullable=True)
+
 
     # Relationships
     user: Mapped[User] = relationship("User", back_populates="buyer")

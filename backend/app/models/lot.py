@@ -11,9 +11,12 @@ from app.db.base import Base
 from app.db.mixins.timestamp import TimestampMixin
 
 if TYPE_CHECKING:
-    from app.models.commodities import CommodityVariety , State , District , Tehsil , APMC , Commodity , BagType
+    from app.models.auction import Auction
+    from app.models.commodities import APMC, BagType, Commodity, CommodityVariety, District, State, Tehsil
+    from app.models.commission_agent import CommissionAgent
     from app.models.seller import Seller
-    
+    from app.models.weighment_service import WeighmentRecord
+
 
 class Lot(Base, TimestampMixin):
     __tablename__ = "lots"
@@ -86,7 +89,21 @@ class Lot(Base, TimestampMixin):
     commodity: Mapped["Commodity"] = relationship("Commodity")
     commodity_variety: Mapped["CommodityVariety | None"] = relationship("CommodityVariety")
     bag_type: Mapped["BagType | None"] = relationship("BagType")
-    commission_agent: Mapped["CommissionAgent | None"] = relationship("CommissionAgent")
+    commission_agent: Mapped["CommissionAgent | None"] = relationship(
+        "CommissionAgent", back_populates="lots"
+    )
+
+    auction: Mapped["Auction | None"] = relationship(
+        "Auction",
+        back_populates="lot",
+        uselist=False,
+        cascade="all, delete-orphan",
+    )
+
+    weighment_records: Mapped[list["WeighmentRecord"]] = relationship(
+        "WeighmentRecord",
+        back_populates="lot",
+    )
 
     location: Mapped["LotLocation | None"] = relationship(
         "LotLocation",

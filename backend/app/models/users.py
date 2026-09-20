@@ -14,11 +14,13 @@ from app.models.enums import AddressType, Gender, UserRelationshipType, UserRole
 
 if TYPE_CHECKING:
     from app.models.assaying_service import AssayingBooking
+    from app.models.auction import AuctionBid
     from app.models.bank_account import BankAccount
     from app.models.buyer import Buyer
     from app.models.commodities import APMC, District, State, Tehsil
     from app.models.seller import Seller
     from app.models.service_provider import ServiceProvider
+    from app.models.weighment_service import WeighmentBooking
 
 
 class User(
@@ -81,6 +83,18 @@ class User(
         "AssayingBooking",
         foreign_keys="AssayingBooking.seeker_user_id",
         back_populates="seeker_user",
+        cascade="all, delete-orphan",
+    )
+    weighment_booking_requests: Mapped[list[WeighmentBooking]] = relationship(
+        "WeighmentBooking",
+        foreign_keys="WeighmentBooking.seeker_user_id",
+        back_populates="seeker_user",
+        cascade="all, delete-orphan",
+    )
+    auction_bids: Mapped[list[AuctionBid]] = relationship(
+        "AuctionBid",
+        foreign_keys="AuctionBid.bidder_user_id",
+        back_populates="bidder_user",
         cascade="all, delete-orphan",
     )
 
