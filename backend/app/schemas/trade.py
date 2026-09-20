@@ -1,4 +1,5 @@
 from datetime import date, datetime
+from decimal import Decimal
 
 from pydantic import BaseModel, Field, model_validator
 
@@ -125,6 +126,7 @@ class TradeOut(ORM):
     final_qty_qtl: Dec | None
     total_value: Dec | None
     status: TradeStatus
+    bid_decision: str
     buyer_approval: ApprovalStatus
     seller_approval: ApprovalStatus
     buyer_confirmed_at: datetime | None
@@ -143,6 +145,8 @@ class BillOut(ORM):
     mandi_fee: Dec
     commission: Dec
     other_charges: Dec
+    seller_deductions: Dec
+    seller_net: Dec
     tax: Dec
     total: Dec
     paid: Dec
@@ -155,10 +159,9 @@ class PaymentIn(BaseModel):
 
 
 class BillIn(BaseModel):
-    """Charges are inputs, not hard-coded, because mandi fee rules differ per APMC (see PRD open question 2)."""
+    """Mandi fee, commission, hamali etc. come from the APMC's charge rules (POST /charge-rules), not from the request.
+    Only a one-off buyer-side charge and the tax rate are entered at billing time."""
 
-    mandi_fee_pct: Dec = Field(default=0, ge=0, le=100)
-    commission_pct: Dec = Field(default=0, ge=0, le=100)
-    other_charges: Dec = Field(default=0, ge=0)
-    tax_pct: Dec = Field(default=0, ge=0, le=100)
+    other_charges: Dec = Field(default=Decimal(0), ge=0)
+    tax_pct: Dec = Field(default=Decimal(0), ge=0, le=100)
     due_days: int = Field(default=7, ge=0, le=90)

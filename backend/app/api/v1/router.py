@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 
-from app.api.v1 import auction, auth, lookups, lots, mandis, marketplace, profile, trade
+from app.api.v1 import agents, auction, auth, lookups, lots, mandis, marketplace, profile, trade
 
 api_router = APIRouter()
 for r in (
@@ -13,5 +13,6 @@ for r in (
     trade.router,
     marketplace.router,
     mandis.router,
+    agents.router,
 ):
     api_router.include_router(r)

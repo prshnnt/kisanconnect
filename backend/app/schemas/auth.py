@@ -1,6 +1,6 @@
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
 
-from app.models.enums import Role
+from app.models.enums import Role, UserType
 
 
 def _mobile(v: str) -> str:
@@ -22,9 +22,28 @@ class RegisterIn(BaseModel):
     last_name: str | None = None
     password: str
     roles: list[Role] = Field(min_length=1)
-    registered_apmc_id: int | None = None
+    user_type: UserType = UserType.INDIVIDUAL
+    organization_name: str | None = None
+    registered_apmc_id: int = Field(gt=0, description="Registered APMC is mandatory on the registration form")
     admin_invite_code: str | None = None
+    # commission agents are licensed by the APMC they operate in
+    firm_name: str | None = None
+    license_number: str | None = None
     _v = field_validator("mobile")(_mobile)
+
+    @field_validator("organization_name", "admin_invite_code", "firm_name", "license_number", mode="before")
+    @classmethod
+    def _blank_is_none(cls, v):
+        """Swagger and forms send "" or "string" placeholders; treat empty text as missing."""
+        return None if isinstance(v, str) and not v.strip() else v
+
+    @model_validator(mode="after")
+    def _by_role(self):
+        if self.user_type == UserType.INSTITUTIONAL and not self.organization_name:
+            raise ValueError("organization_name is required for institutional users")
+        if Role.COMMISSION_AGENT in self.roles and not (self.firm_name and self.license_number):
+            raise ValueError("firm_name and license_number are required to register as a commission agent")
+        return self
 
 
 class LoginIn(BaseModel):

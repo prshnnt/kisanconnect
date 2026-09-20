@@ -7,7 +7,7 @@ documents with independent approval / payment lifecycles, so merging would only 
 from datetime import date, datetime
 from decimal import Decimal
 
-from sqlalchemy import BigInteger, Boolean, Date, DateTime, ForeignKey, Index, Integer, Numeric, String, Text
+from sqlalchemy import BigInteger, Boolean, Date, DateTime, ForeignKey, Index, Integer, Numeric, String, Text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db.base import Base, PKMixin, TimestampMixin
@@ -15,12 +15,17 @@ from app.models._types import enum_col
 from app.models.enums import (
     ApprovalStatus,
     AuctionStatus,
+    BidDecision,
     BidStatus,
+    ChargeBasis,
+    ChargeKind,
+    ChargeSide,
     DeliveryMode,
     GateExitType,
     LotStatus,
     LotType,
     PaymentStatus,
+    PayoutStatus,
     SaleType,
     TradeStatus,
     Venue,
@@ -29,13 +34,16 @@ from app.models.enums import (
 
 class CommissionAgent(Base, PKMixin, TimestampMixin):
     __tablename__ = "commission_agents"
-    user_id: Mapped[int | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"))
+    user_id: Mapped[int | None] = mapped_column(
+        ForeignKey("users.id", ondelete="SET NULL"), unique=True
+    )  # NULL = listed by the APMC, not yet on the platform
     apmc_id: Mapped[int] = mapped_column(ForeignKey("apmcs.id"), index=True)
     firm_name: Mapped[str] = mapped_column(String(200), index=True)
     agent_name: Mapped[str] = mapped_column(String(150))
     license_number: Mapped[str | None] = mapped_column(String(100))
     mobile: Mapped[str | None] = mapped_column(String(20))
-    commission_pct: Mapped[Decimal | None] = mapped_column(Numeric(5, 2))
+    commission_pct: Mapped[Decimal | None] = mapped_column(Numeric(5, 2))  # this agent's own rate; falls back to the APMC rate
+    license_expires_on: Mapped[date | None] = mapped_column(Date)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
 
 
@@ -183,6 +191,7 @@ class Trade(Base, PKMixin, TimestampMixin):
     status: Mapped[TradeStatus] = mapped_column(enum_col(TradeStatus), default=TradeStatus.DECLARED, index=True)
     buyer_confirmed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     seller_confirmed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    bid_decision: Mapped[BidDecision] = mapped_column(enum_col(BidDecision), default=BidDecision.PENDING)
     buyer_approval: Mapped[ApprovalStatus] = mapped_column(enum_col(ApprovalStatus), default=ApprovalStatus.PENDING)
     seller_approval: Mapped[ApprovalStatus] = mapped_column(enum_col(ApprovalStatus), default=ApprovalStatus.PENDING)
     terms: Mapped[str | None] = mapped_column(Text)
@@ -202,6 +211,8 @@ class SaleBill(Base, PKMixin, TimestampMixin):
     mandi_fee: Mapped[Decimal] = mapped_column(Numeric(15, 2), default=0)
     commission: Mapped[Decimal] = mapped_column(Numeric(15, 2), default=0)
     other_charges: Mapped[Decimal] = mapped_column(Numeric(15, 2), default=0)  # weighment + labour
+    seller_deductions: Mapped[Decimal] = mapped_column(Numeric(15, 2), default=0)  # commission + hamali etc, taken from the seller
+    seller_net: Mapped[Decimal] = mapped_column(Numeric(15, 2), default=0)  # what the seller actually receives
     tax: Mapped[Decimal] = mapped_column(Numeric(15, 2), default=0)
     total: Mapped[Decimal] = mapped_column(Numeric(15, 2))
     paid: Mapped[Decimal] = mapped_column(Numeric(15, 2), default=0)
@@ -225,3 +236,47 @@ class GateExit(Base, PKMixin, TimestampMixin):
     approval: Mapped[ApprovalStatus] = mapped_column(enum_col(ApprovalStatus), default=ApprovalStatus.PENDING, index=True)
     approved_by: Mapped[int | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"))
     approved_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+
+class ChargeRule(Base, PKMixin, TimestampMixin):
+    """Per-APMC fee schedule. Rates differ by state and commodity, so they are data, never constants in code.
+    apmc_id NULL = default rule used when an APMC has no specific one. commodity_id NULL = applies to every commodity."""
+
+    __tablename__ = "charge_rules"
+    apmc_id: Mapped[int | None] = mapped_column(ForeignKey("apmcs.id", ondelete="CASCADE"), index=True)
+    commodity_id: Mapped[int | None] = mapped_column(ForeignKey("commodities.id", ondelete="CASCADE"))
+    kind: Mapped[ChargeKind] = mapped_column(enum_col(ChargeKind))
+    side: Mapped[ChargeSide] = mapped_column(enum_col(ChargeSide))
+    basis: Mapped[ChargeBasis] = mapped_column(enum_col(ChargeBasis))
+    rate: Mapped[Decimal] = mapped_column(Numeric(12, 4))
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+    __table_args__ = (Index("ix_charge_rules_lookup", "apmc_id", "kind", "is_active"),)
+
+
+class BillCharge(Base, PKMixin):
+    """One line on a bill: what was charged, to whom, and how it was computed. Snapshotted, so later rule changes
+    never rewrite history."""
+
+    __tablename__ = "bill_charges"
+    bill_id: Mapped[int] = mapped_column(ForeignKey("sale_bills.id", ondelete="CASCADE"), index=True)
+    kind: Mapped[ChargeKind] = mapped_column(enum_col(ChargeKind))
+    side: Mapped[ChargeSide] = mapped_column(enum_col(ChargeSide))
+    basis: Mapped[ChargeBasis] = mapped_column(enum_col(ChargeBasis))
+    rate: Mapped[Decimal] = mapped_column(Numeric(12, 4))
+    amount: Mapped[Decimal] = mapped_column(Numeric(15, 2))
+    payee: Mapped[str] = mapped_column(String(20))  # mandi | commission_agent | provider
+
+
+class Settlement(Base, PKMixin, TimestampMixin):
+    """Money owed OUT of a paid bill: the seller's net proceeds and the agent's commission.
+    The buyer pays the bill; the platform then releases these (e-NAM: transferred to registered bank accounts)."""
+
+    __tablename__ = "settlements"
+    bill_id: Mapped[int] = mapped_column(ForeignKey("sale_bills.id", ondelete="CASCADE"), index=True)
+    payee_user_id: Mapped[int | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"), index=True)
+    payee_role: Mapped[str] = mapped_column(String(20))  # seller | commission_agent | mandi
+    amount: Mapped[Decimal] = mapped_column(Numeric(15, 2))
+    status: Mapped[PayoutStatus] = mapped_column(enum_col(PayoutStatus), default=PayoutStatus.PENDING, index=True)
+    reference: Mapped[str | None] = mapped_column(String(100))
+    paid_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    __table_args__ = (UniqueConstraint("bill_id", "payee_role", name="uq_settlement_per_role"),)

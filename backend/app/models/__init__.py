@@ -2,11 +2,28 @@ from app.models.geo import Apmc, BagType, Commodity, District, State, Tehsil, Va
 from app.models.identity import BankAccount, Buyer, OtpChallenge, RefreshToken, Seller, TradeLicense, User
 from app.models.services import Equipment, ProviderService, ServiceBooking, ServiceCatalog, ServiceProvider, WeighmentRecord
 from app.models.shared import Address, Attachment, CommodityLink, NumberSequence
-from app.models.trade import Auction, AuctionBid, CommissionAgent, Demand, EPermit, GateExit, Lot, SaleBill, Supply, Trade
+from app.models.trade import (
+    Auction,
+    AuctionBid,
+    BillCharge,
+    ChargeRule,
+    CommissionAgent,
+    Demand,
+    EPermit,
+    GateExit,
+    Lot,
+    SaleBill,
+    Settlement,
+    Supply,
+    Trade,
+)
 
 __all__ = [
     "Address",
     "Apmc",
+    "BillCharge",
+    "ChargeRule",
+    "Settlement",
     "Attachment",
     "Auction",
     "AuctionBid",

@@ -5,20 +5,33 @@ Built on the consolidated 34-table schema (`DB_DESIGN.md` in the DB pack).
 
 ## Run it
 ```bash
-cp .env.example .env            # then set JWT_SECRET (see the comment inside)
-docker compose up --build       # db + migrate job + api + worker + beat
-docker compose run --rm api python -m scripts.seed   # optional: reference data + demo users
+docker compose up --build          # no setup needed: safe development defaults are built into docker-compose.yml
+docker compose run --rm api python -m scripts.seed      # reference data, default fee rules, demo users
 ```
-API docs: http://localhost:8000/docs  ·  health: `/health`, `/ready`
+API docs: http://localhost:8000/docs  (`/` returns 404 by design; `/docs` is the entry point) · health: `/health`, `/ready`
+
+Registration in dev returns the OTP in the response (`debug_otp`), because nothing sends SMS yet:
+1. `POST /api/v1/auth/register/request-otp` `{"mobile": "9506359026"}`
+2. `POST /api/v1/auth/register` with that OTP. **`registered_apmc_id` is required** and must be a real APMC id
+   (run the seed, then look one up with `GET /api/v1/lookups/apmcs?state_id=...`). Do not leave Swagger's placeholder `0`.
+
+Demo users after seeding (password `Passw0rd1`): seller `9000000001`, buyer `9000000002`, provider `9000000003`,
+commission agent `9000000004`, admin `9000000009`. **Delete them before going live.**
 
 Without Docker:
 ```bash
-make install && alembic upgrade head && python -m scripts.seed && make run
+cp .env.example .env && pip install -e ".[dev]" && alembic upgrade head && python -m scripts.seed && uvicorn app.main:app --reload
 ```
+On Windows, `make` is not installed by default: run the commands above directly.
+
+### Going to production
+Set `ENV=production`, a real `JWT_SECRET` (32+ random chars), `DEBUG_OTP=false` and explicit `CORS_ORIGINS`.
+With `ENV=production` the app refuses to start if any of these are weak. Edit the `x-app-env` block in
+`docker-compose.yml`, or use your platform's secret store.
 
 ## Test
 ```bash
-make test     # 29 tests. Spins up its own throwaway PostgreSQL, so nothing to install or configure
+make test     # 39 tests. Spins up its own throwaway PostgreSQL, so nothing to install or configure
 make lint
 ```
 
@@ -36,7 +49,7 @@ alembic/       single initial migration, verified: upgrade, check (no drift), do
 scripts/seed.py
 ```
 
-## Endpoint groups (90 paths / 103 operations, see /docs)
+## Endpoint groups (100 paths, 115 operations, see /docs)
 | Tag | Covers |
 |---|---|
 | A. Auth | register/login with OTP, refresh (reuse detection), lockout, password change, account deletion |
@@ -48,9 +61,11 @@ scripts/seed.py
 | G/H/K | weighment, trade confirmation, agreement, billing, payments, gate exit |
 | I/J | assaying / weighment / logistics / warehouse marketplace: catalogs, bookings, negotiation |
 | L. Find Mandis | captcha + radius search (public) |
+| M. Commission agents & fees | agent profile, their lots and earnings, per-APMC fee rules, settlements (payouts) |
 
 ## Rules worth knowing
 - **Bidding is race-safe:** the auction row is locked per bid. A test fires 50 simultaneous bids, and removing the lock makes that test fail.
+- **The buyer pays; the seller nets.** Commission and hamali are deducted from the seller's proceeds, never added to the buyer's bill (see `docs/TRADE_FLOW.md`).
 - **Money** is `Decimal`, serialised as strings (`"2200.00"`). Never float.
 - **Illegal status changes** return `409 INVALID_TRANSITION` (all edges in `services/state.py`).
 - **Errors** always look like `{"error": {"code", "message", "details"}}`.

@@ -7,7 +7,7 @@ from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db.base import Base, PKMixin, SoftDeleteMixin, TimestampMixin
 from app.models._types import enum_col
-from app.models.enums import ApmcType, Gender, LicenseStatus, OtpPurpose, SellerType
+from app.models.enums import ApmcType, Gender, LicenseStatus, OtpPurpose, SellerType, UserType
 
 
 class User(Base, PKMixin, TimestampMixin, SoftDeleteMixin):
@@ -15,6 +15,8 @@ class User(Base, PKMixin, TimestampMixin, SoftDeleteMixin):
 
     __tablename__ = "users"
     uuid: Mapped[str] = mapped_column(String(36), unique=True, server_default=text("gen_random_uuid()::text"))
+    user_type: Mapped[UserType] = mapped_column(enum_col(UserType), default=UserType.INDIVIDUAL)
+    organization_name: Mapped[str | None] = mapped_column(String(200))  # institutional users (FPOs, firms)
     registered_apmc_id: Mapped[int | None] = mapped_column(ForeignKey("apmcs.id"))
 
     first_name: Mapped[str] = mapped_column(String(100))

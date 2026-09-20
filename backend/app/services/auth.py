@@ -15,7 +15,7 @@ from app.core.security import (
     validate_password_policy,
     verify_password,
 )
-from app.models import Buyer, OtpChallenge, RefreshToken, Seller, User
+from app.models import Apmc, Buyer, CommissionAgent, OtpChallenge, RefreshToken, Seller, User
 from app.models.enums import OtpPurpose, Role
 from app.models.services import ServiceProvider
 from app.schemas.auth import LoginIn, RegisterIn
@@ -72,12 +72,26 @@ async def _issue_tokens(db: AsyncSession, user: User) -> dict:
     return {"access_token": create_access_token(user.id, user.roles), "refresh_token": raw}
 
 
+def _agent_profile(user: User, data: RegisterIn) -> CommissionAgent:
+    """One agent profile per user, licensed at the APMC they registered with."""
+    return CommissionAgent(
+        user_id=user.id,
+        apmc_id=data.registered_apmc_id,
+        firm_name=data.firm_name,
+        agent_name=" ".join(filter(None, [data.first_name, data.last_name])),
+        license_number=data.license_number,
+        mobile=user.mobile,
+    )
+
+
 async def register(db: AsyncSession, data: RegisterIn) -> dict:
     if await db.scalar(select(User.id).where(User.mobile == data.mobile)):
         raise Conflict("MOBILE_EXISTS", "Mobile already registered")
     if Role.ADMIN in data.roles and (not S.admin_invite_code or data.admin_invite_code != S.admin_invite_code):
         raise DomainError("INVALID_INVITE", "Admin role needs a valid invite code", 403)
     validate_password_policy(data.password)
+    if not await db.get(Apmc, data.registered_apmc_id):
+        raise DomainError("APMC_NOT_FOUND", "The selected APMC does not exist", 422)
     await verify_otp(db, data.mobile, OtpPurpose.REGISTER, data.otp)
 
     user = User(
@@ -88,13 +102,17 @@ async def register(db: AsyncSession, data: RegisterIn) -> dict:
         roles=sorted({r.value for r in data.roles}),
         password_hash=hash_password(data.password),
         registered_apmc_id=data.registered_apmc_id,
+        user_type=data.user_type,
+        organization_name=data.organization_name,
     )
     db.add(user)
     await db.flush()
     if Role.SELLER in data.roles:
         db.add(Seller(user_id=user.id))
     if Role.BUYER in data.roles:
-        db.add(Buyer(user_id=user.id))
+        db.add(Buyer(user_id=user.id, organization=data.organization_name))
+    if Role.COMMISSION_AGENT in data.roles:
+        db.add(_agent_profile(user, data))
     if Role.SERVICE_PROVIDER in data.roles:
         db.add(ServiceProvider(user_id=user.id))
     await db.flush()

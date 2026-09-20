@@ -6,6 +6,7 @@ from enum import StrEnum
 class Role(StrEnum):
     SELLER = "seller"
     BUYER = "buyer"
+    COMMISSION_AGENT = "commission_agent"
     SERVICE_PROVIDER = "service_provider"
     ADMIN = "admin"
 
@@ -176,3 +177,46 @@ class OtpPurpose(StrEnum):
     VERIFY_EMAIL = "verify_email"
     DELETE_ACCOUNT = "delete_account"
     RESET_PASSWORD = "reset_password"
+
+
+class UserType(StrEnum):
+    """Registration screen: Individual User | Institutional User."""
+
+    INDIVIDUAL = "individual"
+    INSTITUTIONAL = "institutional"
+
+
+class ChargeKind(StrEnum):
+    """What a deduction is. Buyer-side charges are added to the invoice; seller-side are deducted from the payout."""
+
+    MANDI_FEE = "mandi_fee"
+    COMMISSION = "commission"
+    HAMALI = "hamali"
+    WEIGHMENT = "weighment"
+    TRANSPORT = "transport"
+    OTHER = "other"
+
+
+class ChargeBasis(StrEnum):
+    PERCENT = "percent"  # of gross sale value
+    PER_BAG = "per_bag"
+    PER_QTL = "per_qtl"
+    FLAT = "flat"
+
+
+class ChargeSide(StrEnum):
+    BUYER = "buyer"  # added on top of the sale value the buyer pays
+    SELLER = "seller"  # deducted from what the seller receives
+
+
+class PayoutStatus(StrEnum):
+    PENDING = "pending"
+    PAID = "paid"
+
+
+class BidDecision(StrEnum):
+    """Seller's choice on the declared top bid (e-NAM step 4: the farmer may accept or reject)."""
+
+    PENDING = "pending"
+    ACCEPTED = "accepted"
+    REJECTED = "rejected"

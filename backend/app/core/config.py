@@ -9,7 +9,7 @@ class Settings(BaseSettings):
 
     database_url: str = "postgresql+asyncpg://postgres:postgres@localhost:5432/kisanconnect"
     redis_url: str = "redis://localhost:6379/0"
-    env: str = "development"          # set ENV=production in deployments
+    env: str = "development"  # set ENV=production in deployments
     jwt_secret: str = "dev-only-insecure-secret-change-me-32b"
     jwt_algorithm: str = "HS256"
     access_minutes: int = 60

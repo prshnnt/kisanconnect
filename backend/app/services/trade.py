@@ -1,13 +1,29 @@
 from datetime import date, datetime, timedelta, timezone
 from decimal import ROUND_HALF_UP, Decimal
 
-from sqlalchemy import select
+from sqlalchemy import or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.errors import DomainError, NotFound
-from app.models import BagType, Buyer, Equipment, GateExit, Lot, SaleBill, Seller, Trade, WeighmentRecord
-from app.models.enums import ApprovalStatus, GateExitType, LotStatus, PaymentStatus, TradeStatus
+from app.models import (
+    Auction,
+    BagType,
+    BillCharge,
+    Buyer,
+    ChargeRule,
+    CommissionAgent,
+    Equipment,
+    GateExit,
+    Lot,
+    SaleBill,
+    Seller,
+    Settlement,
+    Trade,
+    WeighmentRecord,
+)
+from app.models.enums import ApprovalStatus, BidDecision, ChargeKind, GateExitType, LotStatus, PaymentStatus, PayoutStatus, TradeStatus
 from app.schemas.trade import BillIn, PaymentIn, WeighmentIn
+from app.services import charges
 from app.services.numbering import next_number
 from app.services.state import move
 
@@ -109,30 +125,116 @@ async def decide(db: AsyncSession, t: Trade, seller: Seller | None, buyer: Buyer
 
 
 # ---------------- billing ----------------
+async def rules_for(db: AsyncSession, apmc_id: int | None, commodity_id: int) -> list[charges.Rule]:
+    """Most specific rule wins per charge kind: (APMC + commodity) > (APMC) > (default). Rates are data, not code."""
+    rows = (
+        await db.scalars(
+            select(ChargeRule).where(
+                ChargeRule.is_active.is_(True),
+                or_(ChargeRule.apmc_id == apmc_id, ChargeRule.apmc_id.is_(None)),
+                or_(ChargeRule.commodity_id == commodity_id, ChargeRule.commodity_id.is_(None)),
+            )
+        )
+    ).all()
+    best: dict[tuple, ChargeRule] = {}
+    specificity = lambda r: (r.apmc_id is not None) * 2 + (r.commodity_id is not None)  # noqa: E731
+    for r in rows:
+        key = (r.kind, r.side, r.basis)
+        if key not in best or specificity(r) > specificity(best[key]):
+            best[key] = r
+    return [charges.Rule(r.kind, r.side, r.basis, r.rate) for r in best.values()]
+
+
 async def generate_bill(db: AsyncSession, t: Trade, d: BillIn) -> SaleBill:
+    """Buyer's invoice + the seller/agent settlements, from one computation. Commission comes OUT of the seller's
+    proceeds; it is not added to what the buyer pays."""
     if t.status != TradeStatus.AGREEMENT_GENERATED or not (t.buyer_approval == t.seller_approval == ApprovalStatus.APPROVED):
         raise DomainError("AGREEMENT_NOT_APPROVED", "Both parties must approve the agreement", 409)
     if await db.scalar(select(SaleBill.id).where(SaleBill.trade_id == t.id)):
         raise DomainError("BILL_EXISTS", "Bill already generated", 409)
-    gross = money(t.final_qty_qtl * t.rate_per_qtl)
-    fee, comm = money(gross * d.mandi_fee_pct / 100), money(gross * d.commission_pct / 100)
-    tax = money((gross + fee + comm + d.other_charges) * d.tax_pct / 100)
+
+    rules = await rules_for(db, t.apmc_id, t.commodity_id)
+    if t.commission_agent_id:
+        agent = await db.get(CommissionAgent, t.commission_agent_id)
+        rules = charges.with_agent_rate(rules, agent.commission_pct)
+    try:
+        b = charges.compute(t.final_qty_qtl, t.rate_per_qtl, t.bags or 0, rules, has_agent=t.commission_agent_id is not None)
+    except ValueError as e:
+        raise DomainError("DEDUCTIONS_EXCEED_VALUE", str(e), 422) from None
+    extra = money(d.other_charges)  # one-off buyer-side charge entered at billing time
+    buyer_total = b.buyer_total + extra
+    tax = money(buyer_total * d.tax_pct / 100)
+
     bill = SaleBill(
         invoice_number=await next_number(db, "INV", dated="%y%m"),
         trade_id=t.id,
         quantity_qtl=t.final_qty_qtl,
         rate_per_qtl=t.rate_per_qtl,
-        gross_amount=gross,
-        mandi_fee=fee,
-        commission=comm,
-        other_charges=money(d.other_charges),
+        gross_amount=b.gross,
+        mandi_fee=sum((line.amount for line in b.lines if line.kind == ChargeKind.MANDI_FEE), Decimal(0)),
+        commission=b.commission,
+        other_charges=b.buyer_charges + extra,
         tax=tax,
-        total=gross + fee + comm + money(d.other_charges) + tax,
+        total=buyer_total + tax,
+        seller_deductions=b.seller_deductions,
+        seller_net=b.seller_net,
         due_date=date.today() + timedelta(days=d.due_days),
     )
     db.add(bill)
     await db.flush()
+    for line in b.lines:
+        db.add(
+            BillCharge(
+                bill_id=bill.id, kind=line.kind, side=line.side, basis=line.basis, rate=line.rate, amount=line.amount, payee=line.payee
+            )
+        )
+    await _create_settlements(db, t, bill)
+    await db.flush()
     return bill
+
+
+async def _create_settlements(db: AsyncSession, t: Trade, bill: SaleBill) -> None:
+    """Who gets paid out once the buyer has paid: the seller (net) and the commission agent (their commission)."""
+    seller = await db.get(Seller, t.seller_id)
+    db.add(Settlement(bill_id=bill.id, payee_user_id=seller.user_id, payee_role="seller", amount=bill.seller_net))
+    if bill.commission > 0 and t.commission_agent_id:
+        agent = await db.get(CommissionAgent, t.commission_agent_id)
+        db.add(Settlement(bill_id=bill.id, payee_user_id=agent.user_id, payee_role="commission_agent", amount=bill.commission))
+
+
+async def decide_bid(db: AsyncSession, t: Trade, seller: Seller, accept: bool) -> Trade:
+    """e-NAM step 4: after bid declaration the farmer may accept the top price, or reject it and re-auction."""
+    if t.seller_id != seller.id:
+        raise DomainError("FORBIDDEN", "Not your trade", 403)
+    if t.bid_decision != BidDecision.PENDING or t.status != TradeStatus.DECLARED:
+        raise DomainError("ALREADY_DECIDED", "The top bid has already been decided", 409)
+    if accept:
+        t.bid_decision = BidDecision.ACCEPTED
+        return t
+    t.bid_decision = BidDecision.REJECTED
+    move(t, TradeStatus.CANCELLED)
+    lot = await db.get(Lot, t.lot_id)
+    move(lot, LotStatus.ACTIVE)  # lot returns to the pool for another auction
+    old = await db.get(Auction, t.auction_id) if t.auction_id else None
+    if old:
+        await db.delete(t)  # frees the one-trade-per-lot slot and the one-auction-per-lot slot
+        await db.flush()
+        await db.delete(old)
+    return t
+
+
+async def release_settlement(db: AsyncSession, settlement_id: int, reference: str) -> Settlement:
+    """Admin releases a payout. Only allowed once the buyer's bill is fully paid (money must exist before it moves)."""
+    st = await db.scalar(select(Settlement).where(Settlement.id == settlement_id).with_for_update())
+    if not st:
+        raise NotFound("Settlement")
+    bill = await db.get(SaleBill, st.bill_id)
+    if bill.payment_status != PaymentStatus.PAID:
+        raise DomainError("BILL_NOT_PAID", "The buyer has not fully paid this bill yet", 409)
+    if st.status == PayoutStatus.PAID:
+        raise DomainError("ALREADY_PAID", "Already released", 409)
+    st.status, st.reference, st.paid_at = PayoutStatus.PAID, reference, now()
+    return st
 
 
 async def pay(db: AsyncSession, bill_id: int, d: PaymentIn) -> SaleBill:

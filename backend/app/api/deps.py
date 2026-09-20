@@ -6,7 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.errors import DomainError, Forbidden
 from app.core.security import decode_access_token
 from app.db.session import get_db
-from app.models import Buyer, Seller, User
+from app.models import Buyer, CommissionAgent, Seller, User
 from app.models.services import ServiceProvider
 
 _bearer = HTTPBearer(auto_error=False)
@@ -54,3 +54,10 @@ async def current_provider(user: User = Depends(require_roles("service_provider"
 
 def idempotency_key(key: str | None = Header(None, alias="Idempotency-Key")) -> str | None:
     return key
+
+
+async def current_agent(user: User = Depends(require_roles("commission_agent")), db: AsyncSession = Depends(get_db)) -> CommissionAgent:
+    a = await db.scalar(select(CommissionAgent).where(CommissionAgent.user_id == user.id))
+    if not a:
+        raise Forbidden("No commission agent profile")
+    return a
