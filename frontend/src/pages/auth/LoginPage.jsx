@@ -513,17 +513,6 @@ function LoginPage() {
             }}
           >
             <Box>
-              <Chip
-                icon={<VerifiedUserOutlinedIcon sx={{ '&&': { color: '#ffffff', fontSize: 16 } }} />}
-                label="Official eNAM Connected Platform"
-                size="small"
-                sx={{
-                  backgroundColor: 'rgba(255, 255, 255, 0.15)',
-                  color: '#ffffff',
-                  fontWeight: 600,
-                  mb: 3,
-                }}
-              />
 
               <Typography variant="h5" sx={{ fontWeight: 800, mb: 1.5, letterSpacing: -0.3 }}>
                 Empowering India's Agricultural Value Chain
