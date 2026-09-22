@@ -14,19 +14,52 @@ from app.models import Apmc, BagType, Buyer, ChargeRule, CommissionAgent, Commod
 from app.models.enums import ChargeBasis, ChargeKind, ChargeSide
 from app.models.services import ServiceProvider
 
-STATES = {"Uttar Pradesh": "UP", "Madhya Pradesh": "MP", "Maharashtra": "MH", "Bihar": "BR", "Punjab": "PB"}
-APMCS = {"UP": ["Farrukhabad", "Jhansi", "Agra", "Bareilly"], "MP": ["Indore"], "MH": ["Amravati"], "BR": ["Nalanda"], "PB": ["Ludhiana"]}
-COMMODITIES = {
-    "WHEAT": ["Sharbati", "Lokwan"],
-    "PADDY": ["Basmati", "Sona Masuri"],
-    "MAIZE": ["Local"],
-    "ONION": ["Red", "White"],
-    "RAGI": ["Indaf-5"],
-    "GROUNDNUT": ["TMV-7"],
-    "CUMIN": ["RZ-223"],
-    "AJWAIN": [],
+STATES = {
+    "Uttar Pradesh": "UP",
+    "Madhya Pradesh": "MP",
+    "Maharashtra": "MH",
+    "Punjab": "PB",
+    "Haryana": "HR",
+    "Gujarat": "GJ",
+    "Rajasthan": "RJ",
+    "Karnataka": "KA",
+    "Tamil Nadu": "TN",
+    "Telangana": "TS",
+    "Andhra Pradesh": "AP",
+    "Bihar": "BR",
 }
-BAGS = [("Jute", 1.0), ("HDPE", 0.5), ("Gunny", 0.7)]
+
+APMCS = {
+    "UP": ["Farrukhabad", "Jhansi", "Agra", "Bareilly", "Kanpur", "Lucknow", "Varanasi", "Mathura", "Aligarh", "Meerut"],
+    "MP": ["Indore", "Bhopal", "Ujjain", "Gwalior", "Jabalpur", "Mandsaur", "Neemuch", "Harda", "Sagar"],
+    "MH": ["Amravati", "Nashik", "Pune", "Nagpur", "Latur", "Solapur", "Akola", "Kolhapur", "Sangli", "Jalgaon"],
+    "PB": ["Ludhiana", "Amritsar", "Jalandhar", "Patiala", "Bathinda", "Khanna", "Abohar", "Moga"],
+    "HR": ["Karnal", "Ambala", "Hisar", "Rohtak", "Sirsa", "Panipat", "Sonipat", "Kurukshetra"],
+    "GJ": ["Rajkot", "Ahmedabad", "Surat", "Vadodara", "Unjha", "Gondal", "Junagadh", "Amreli"],
+    "RJ": ["Jaipur", "Kota", "Jodhpur", "Bikaner", "Sri Ganganagar", "Alwar", "Baran", "Nagaur"],
+    "KA": ["Bengaluru", "Hubballi", "Mysuru", "Belagavi", "Davanagere", "Raichur", "Shimoga", "Tumakuru"],
+    "TN": ["Chennai", "Coimbatore", "Madurai", "Salem", "Erode", "Tiruchirappalli", "Tirupur"],
+    "TS": ["Hyderabad", "Warangal", "Nizamabad", "Khammam", "Karimnagar", "Nalgonda"],
+    "AP": ["Guntur", "Vijayawada", "Visakhapatnam", "Rajahmundry", "Kurnool", "Tirupati"],
+    "BR": ["Nalanda", "Patna", "Muzaffarpur", "Gaya", "Bhagalpur", "Purnea"],
+}
+
+COMMODITIES = {
+    "WHEAT": ["Sharbati", "Lokwan", "Kalyansona", "PBW 343"],
+    "PADDY": ["Basmati 1121", "Sona Masuri", "Pusa 1509", "IR 64"],
+    "MAIZE": ["Yellow Corn", "Sweet Corn", "Local Hybrid"],
+    "ONION": ["Nasik Red", "Mahuva White", "Garwa"],
+    "COTTON": ["Bt Cotton", "MCU 5", "DCH 32"],
+    "SOYABEAN": ["JS 335", "JS 9560", "NRC 37"],
+    "RAGI": ["Indaf-5", "GPU 28"],
+    "GROUNDNUT": ["TMV-7", "JL 24", "Kadiri 6"],
+    "CUMIN": ["RZ-223", "GC 4"],
+    "MUSTARD": ["Pusa Bold", "Varuna", "Bio 902"],
+    "AJWAIN": ["Local Quality"],
+}
+
+BAGS = [("Jute Bag (50kg)", 1.0), ("HDPE Bag (50kg)", 0.5), ("Gunny Bag (100kg)", 1.5), ("Paper Sack (25kg)", 0.3)]
+
 DEMO = [
     ("9000000001", "Demo Seller", ["seller"]),
     ("9000000002", "Demo Buyer", ["buyer"]),
@@ -36,7 +69,6 @@ DEMO = [
 ]
 
 # Default fee schedule (apmc_id NULL = applies to every APMC that has no rule of its own).
-# ILLUSTRATIVE ONLY: real rates are set by each state/APMC. Admins change them via POST /charge-rules.
 DEFAULT_RULES = [
     (ChargeKind.COMMISSION, ChargeSide.SELLER, ChargeBasis.PERCENT, "5"),  # arhat, paid by the farmer
     (ChargeKind.HAMALI, ChargeSide.SELLER, ChargeBasis.PER_BAG, "4"),
@@ -102,7 +134,7 @@ async def main() -> None:
                     )
                 )
         await db.commit()
-    print("seeded: states, APMCs, commodities, varieties, bag types, default fee rules, commission agents, 5 demo users")
+    print("seeded: states, APMCs, commodities, varieties, bag types, default fee rules, commission agents, demo users")
 
 
 if __name__ == "__main__":

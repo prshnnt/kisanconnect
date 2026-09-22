@@ -9,7 +9,7 @@ from app.db.session import get_db
 from app.models import Apmc, Attachment, BagType, CommissionAgent, Commodity, District, State, Tehsil, User, Variety
 from app.schemas.common import ORM
 
-router = APIRouter(prefix="/lookups", tags=["D. Lookups"], dependencies=[Depends(current_user)])
+router = APIRouter(prefix="/lookups", tags=["D. Lookups"])
 
 
 class Item(ORM):
@@ -37,18 +37,21 @@ async def states(db: AsyncSession = Depends(get_db)):
 
 
 @router.get("/districts", response_model=list[Item])
-async def districts(state_id: int, db: AsyncSession = Depends(get_db)):
-    return await _names(db, District, District.state_id == state_id)
+async def districts(state_id: int | None = Query(None), db: AsyncSession = Depends(get_db)):
+    where = [District.state_id == state_id] if state_id is not None else []
+    return await _names(db, District, *where)
 
 
 @router.get("/tehsils", response_model=list[Item])
-async def tehsils(district_id: int, db: AsyncSession = Depends(get_db)):
-    return await _names(db, Tehsil, Tehsil.district_id == district_id)
+async def tehsils(district_id: int | None = Query(None), db: AsyncSession = Depends(get_db)):
+    where = [Tehsil.district_id == district_id] if district_id is not None else []
+    return await _names(db, Tehsil, *where)
 
 
 @router.get("/apmcs", response_model=list[Item])
-async def apmcs(state_id: int, q: str | None = None, db: AsyncSession = Depends(get_db)):
-    return await _names(db, Apmc, Apmc.state_id == state_id, q=q)
+async def apmcs(state_id: int | None = Query(None), q: str | None = Query(None), db: AsyncSession = Depends(get_db)):
+    where = [Apmc.state_id == state_id] if state_id is not None else []
+    return await _names(db, Apmc, *where, q=q)
 
 
 @router.get("/commodities", response_model=list[Item])

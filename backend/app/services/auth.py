@@ -42,6 +42,7 @@ async def send_otp(db: AsyncSession, target: str, purpose: OtpPurpose) -> str | 
             expires_at=now() + timedelta(minutes=S.otp_ttl_minutes),
         )
     )
+    print("otp", code)
     await db.flush()
     return code if S.debug_otp else None
 
