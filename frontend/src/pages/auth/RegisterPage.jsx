@@ -1,422 +1,321 @@
 import { useState } from 'react'
-import { Link as RouterLink, useNavigate } from 'react-router-dom'
+import { useNavigate, Link as RouterLink } from 'react-router-dom'
 import {
   Box,
   Container,
+  Paper,
   Typography,
+  TextField,
   Button,
-  AppBar,
-  Toolbar,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  Link,
-  Select,
-  MenuItem,
+  IconButton,
+  InputAdornment,
+  Alert,
+  Divider,
+  Stack,
   FormControl,
+  FormLabel,
+  RadioGroup,
+  FormControlLabel,
+  Radio,
+  Chip,
 } from '@mui/material'
-import ArrowBackIcon from '@mui/icons-material/ArrowBack'
-import ArrowForwardIcon from '@mui/icons-material/ArrowForward'
 import AgricultureIcon from '@mui/icons-material/Agriculture'
-import CheckCircleIcon from '@mui/icons-material/CheckCircle'
-import LanguageIcon from '@mui/icons-material/Language'
+import PhoneIphoneIcon from '@mui/icons-material/PhoneIphone'
+import LockIcon from '@mui/icons-material/Lock'
+import PersonIcon from '@mui/icons-material/Person'
+import Visibility from '@mui/icons-material/Visibility'
+import VisibilityOff from '@mui/icons-material/VisibilityOff'
+import VerifiedUserIcon from '@mui/icons-material/VerifiedUser'
+import { useAuth } from '../../context/AuthContext'
+import { authApi } from '../../api/auth'
 
-import StepProgress from './components/StepProgress'
-import UserTypeSelector from './components/UserTypeSelector'
-import Step1RegistrationDetails from './components/Step1RegistrationDetails'
-import Step2IdentityAddress from './components/Step2IdentityAddress'
-import Step3ContactDetails from './components/Step3ContactDetails'
-import Step4BankSecurity from './components/Step4BankSecurity'
-
-function RegisterPage() {
+export function RegisterPage() {
   const navigate = useNavigate()
-  const [currentStep, setCurrentStep] = useState(1)
-  const [userType, setUserType] = useState('individual')
-  const [language, setLanguage] = useState('en')
-  const [successDialogOpen, setSuccessDialogOpen] = useState(false)
-  const [referenceId, setReferenceId] = useState('')
-  const [errors, setErrors] = useState({})
+  const { register } = useAuth()
 
-  const [formData, setFormData] = useState({
-    // Step 1
-    institutionName: '',
-    registrationType: '',
-    state: '',
-    apmc: '',
+  const [step, setStep] = useState(1) // 1: Details & Send OTP, 2: Enter OTP & Register
+  const [fullName, setFullName] = useState('')
+  const [mobileNumber, setMobileNumber] = useState('')
+  const [password, setPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
+  const [role, setRole] = useState('seller') // seller, buyer, service_provider, commission_agent
 
-    // Step 2
-    firstName: '',
-    middleName: '',
-    lastName: '',
-    relationshipName: '',
-    dateOfBirth: '',
-    gender: '',
+  const [otp, setOtp] = useState('')
+  const [debugOtp, setDebugOtp] = useState('')
+  const [errorMessage, setErrorMessage] = useState('')
+  const [infoMessage, setInfoMessage] = useState('')
+  const [submitting, setSubmitting] = useState(false)
 
-    permanentAddressLine1: '',
-    permanentAddressLine2: '',
-    permanentPincode: '',
-    permanentState: '',
-    permanentDistrict: '',
-    permanentTehsil: '',
-    permanentCity: '',
+  const handleRequestOtp = async (e) => {
+    e.preventDefault()
+    setErrorMessage('')
+    setInfoMessage('')
 
-    sameAsPermanent: false,
-    currentAddressLine1: '',
-    currentAddressLine2: '',
-    currentPincode: '',
-    currentState: '',
-    currentDistrict: '',
-    currentTehsil: '',
-    currentCity: '',
-
-    // Step 3
-    mobileNumber: '',
-    emailId: '',
-    communicationConsent: false,
-
-    // Step 4
-    accountNumber: '',
-    confirmAccountNumber: '',
-    ifscCode: '',
-    bankName: '',
-    accountHolderName: '',
-    password: '',
-    confirmPassword: '',
-    declarationConsent: false,
-  })
-
-  const updateFormData = (fields) => {
-    setFormData((prev) => ({ ...prev, ...fields }))
-    // Clear field-specific errors
-    setErrors((prev) => {
-      const copy = { ...prev }
-      Object.keys(fields).forEach((key) => delete copy[key])
-      return copy
-    })
-  }
-
-  // Per-step validation
-  const validateCurrentStep = () => {
-    const errs = {}
-
-    if (currentStep === 1) {
-      if (userType === 'institutional' && !formData.institutionName?.trim()) {
-        errs.institutionName = 'Institution name is required'
-      }
-      if (!formData.registrationType) {
-        errs.registrationType = 'Please select a registration type'
-      }
-      if (!formData.state) {
-        errs.state = 'Please select a registered state'
-      }
-      if (!formData.apmc) {
-        errs.apmc = 'Please select a registered APMC'
-      }
-    } else if (currentStep === 2) {
-      if (!formData.firstName?.trim()) errs.firstName = 'First name is required'
-      if (!formData.lastName?.trim()) errs.lastName = 'Last name is required'
-      if (!formData.permanentAddressLine1?.trim()) {
-        errs.permanentAddressLine1 = 'Permanent address line 1 is required'
-      }
-      if (!formData.permanentState) errs.permanentState = 'Please select state'
-      if (!formData.sameAsPermanent && !formData.currentAddressLine1?.trim()) {
-        errs.currentAddressLine1 = 'Current address line 1 is required'
-      }
-    } else if (currentStep === 3) {
-      if (!formData.mobileNumber || formData.mobileNumber.length < 10) {
-        errs.mobileNumber = 'Please enter a valid 10-digit mobile number'
-      }
-      if (!formData.communicationConsent) {
-        errs.communicationConsent = 'You must agree to communication updates'
-      }
-    } else if (currentStep === 4) {
-      if (!formData.accountNumber) errs.accountNumber = 'Account number is required'
-      if (formData.accountNumber !== formData.confirmAccountNumber) {
-        errs.confirmAccountNumber = 'Account numbers do not match'
-      }
-      if (!formData.ifscCode || formData.ifscCode.length < 11) {
-        errs.ifscCode = 'Enter a valid 11-character IFSC code'
-      }
-      if (!formData.accountHolderName?.trim()) {
-        errs.accountHolderName = 'Account holder name is required'
-      }
-      if (!formData.password || formData.password.length < 8) {
-        errs.password = 'Password must be at least 8 characters long'
-      }
-      if (formData.password !== formData.confirmPassword) {
-        errs.confirmPassword = 'Passwords do not match'
-      }
-      if (!formData.declarationConsent) {
-        errs.declarationConsent = 'Please confirm the declaration before submitting'
-      }
+    if (!fullName.trim()) {
+      setErrorMessage('Please enter your full name')
+      return
+    }
+    if (!mobileNumber || mobileNumber.length < 10) {
+      setErrorMessage('Please enter a valid 10-digit mobile number')
+      return
+    }
+    if (!password || password.length < 6) {
+      setErrorMessage('Password must be at least 6 characters long')
+      return
+    }
+    if (password !== confirmPassword) {
+      setErrorMessage('Passwords do not match')
+      return
     }
 
-    setErrors(errs)
-    return Object.keys(errs).length === 0
-  }
-
-  const handleNext = () => {
-    if (validateCurrentStep()) {
-      if (currentStep < 4) {
-        setCurrentStep((prev) => prev + 1)
-        window.scrollTo({ top: 0, behavior: 'smooth' })
+    setSubmitting(true)
+    try {
+      const res = await authApi.requestRegisterOtp(mobileNumber)
+      setStep(2)
+      if (res.debug_otp) {
+        setDebugOtp(res.debug_otp)
+        setInfoMessage(`OTP sent to +91 ${mobileNumber}. (Debug OTP: ${res.debug_otp})`)
       } else {
-        // Complete registration
-        setReferenceId(`KC-${Math.floor(100000 + Math.random() * 900000)}`)
-        setSuccessDialogOpen(true)
+        setInfoMessage(`OTP sent to +91 ${mobileNumber}.`)
       }
+    } catch (err) {
+      setErrorMessage(err.message || 'Failed to send OTP')
+    } finally {
+      setSubmitting(false)
     }
   }
 
-  const handlePrevious = () => {
-    if (currentStep > 1) {
-      setCurrentStep((prev) => prev - 1)
-      window.scrollTo({ top: 0, behavior: 'smooth' })
+  const handleCompleteRegistration = async (e) => {
+    e.preventDefault()
+    setErrorMessage('')
+    setInfoMessage('')
+
+    if (!otp) {
+      setErrorMessage('Please enter the OTP sent to your mobile')
+      return
+    }
+
+    setSubmitting(true)
+    try {
+      await register({
+        mobile: mobileNumber,
+        otp,
+        password,
+        full_name: fullName,
+        roles: [role],
+      })
+      setInfoMessage('Registration successful! Welcome to KisanConnect.')
+      navigate('/dashboard')
+    } catch (err) {
+      setErrorMessage(err.message || 'Registration failed. Please check your inputs.')
+    } finally {
+      setSubmitting(false)
     }
   }
 
   return (
-    <Box sx={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', backgroundColor: '#ffffff' }}>
-      {/* Top Navigation Bar */}
-      <AppBar position="static" elevation={0} sx={{ backgroundColor: '#ffffff', borderBottom: '1px solid #e5e7eb' }}>
-        <Toolbar sx={{ justifyContent: 'space-between', px: { xs: 2, md: 5 } }}>
-          <Box
-            component={RouterLink}
-            to="/login"
-            sx={{
-              display: 'flex',
-              alignItems: 'center',
-              textDecoration: 'none',
-              gap: 1.2,
-            }}
-          >
-            <AgricultureIcon sx={{ color: '#2e7d32', fontSize: 32 }} />
-            <Typography
-              variant="h6"
-              sx={{
-                fontWeight: 800,
-                letterSpacing: 0.5,
-                color: '#1b5e20',
-                fontSize: '1.25rem',
-              }}
-            >
+    <Box
+      sx={{
+        minHeight: '100vh',
+        bgcolor: '#f4f6f8',
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'center',
+        py: 4,
+      }}
+    >
+      <Container maxWidth="sm">
+        <Box textAlign="center" mb={3}>
+          <Stack direction="row" justifyContent="center" alignItems="center" spacing={1} mb={1}>
+            <AgricultureIcon sx={{ fontSize: 44, color: 'primary.main' }} />
+            <Typography variant="h4" fontWeight={800} color="primary.dark" letterSpacing={0.5}>
               KisanConnect
             </Typography>
-          </Box>
+          </Stack>
+          <Typography variant="subtitle1" color="text.secondary" fontWeight={500}>
+            New User Registration
+          </Typography>
+        </Box>
 
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 3 }}>
-            <Typography variant="body2" sx={{ color: '#4b5563', display: { xs: 'none', sm: 'block' } }}>
-              Already registered?{' '}
-              <Link
-                component={RouterLink}
-                to="/login"
-                sx={{
-                  color: '#2e7d32',
-                  fontWeight: 700,
-                  textDecoration: 'none',
-                  '&:hover': { textDecoration: 'underline' },
-                }}
-              >
-                Sign In
-              </Link>
+        <Paper elevation={4} sx={{ p: 4, borderRadius: 3, bgcolor: '#ffffff' }}>
+          {errorMessage && (
+            <Alert severity="error" sx={{ mb: 2 }}>
+              {errorMessage}
+            </Alert>
+          )}
+          {infoMessage && (
+            <Alert severity="success" sx={{ mb: 2 }}>
+              {infoMessage}
+            </Alert>
+          )}
+
+          {step === 1 ? (
+            <form onSubmit={handleRequestOtp}>
+              <Stack spacing={2.5}>
+                <TextField
+                  fullWidth
+                  label="Full Name"
+                  placeholder="e.g. Ramesh Kumar"
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <PersonIcon color="action" />
+                      </InputAdornment>
+                    ),
+                  }}
+                />
+
+                <TextField
+                  fullWidth
+                  label="Mobile Number"
+                  placeholder="10-digit mobile number"
+                  value={mobileNumber}
+                  onChange={(e) => setMobileNumber(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <PhoneIphoneIcon color="action" />
+                        <Typography variant="body2" sx={{ ml: 0.5, fontWeight: 600 }}>
+                          +91
+                        </Typography>
+                      </InputAdornment>
+                    ),
+                  }}
+                />
+
+                <FormControl component="fieldset">
+                  <FormLabel component="legend" sx={{ fontWeight: 600, fontSize: '0.875rem', mb: 0.5 }}>
+                    Select Account Role
+                  </FormLabel>
+                  <RadioGroup row value={role} onChange={(e) => setRole(e.target.value)}>
+                    <FormControlLabel value="seller" control={<Radio size="small" />} label="Farmer / Seller" />
+                    <FormControlLabel value="buyer" control={<Radio size="small" />} label="Buyer / Trader" />
+                    <FormControlLabel value="service_provider" control={<Radio size="small" />} label="Logistics Provider" />
+                    <FormControlLabel value="commission_agent" control={<Radio size="small" />} label="Commission Agent" />
+                  </RadioGroup>
+                </FormControl>
+
+                <TextField
+                  fullWidth
+                  label="Password"
+                  type={showPassword ? 'text' : 'password'}
+                  placeholder="Create a password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <LockIcon color="action" />
+                      </InputAdornment>
+                    ),
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <IconButton onClick={() => setShowPassword(!showPassword)} edge="end">
+                          {showPassword ? <VisibilityOff /> : <Visibility />}
+                        </IconButton>
+                      </InputAdornment>
+                    ),
+                  }}
+                />
+
+                <TextField
+                  fullWidth
+                  label="Confirm Password"
+                  type={showPassword ? 'text' : 'password'}
+                  placeholder="Confirm password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <LockIcon color="action" />
+                      </InputAdornment>
+                    ),
+                  }}
+                />
+
+                <Button
+                  type="submit"
+                  variant="contained"
+                  size="large"
+                  disabled={submitting}
+                  sx={{ py: 1.4, fontSize: '1rem', fontWeight: 700, borderRadius: 2 }}
+                >
+                  {submitting ? 'Sending OTP...' : 'Continue & Verify Mobile'}
+                </Button>
+              </Stack>
+            </form>
+          ) : (
+            <form onSubmit={handleCompleteRegistration}>
+              <Stack spacing={2.5}>
+                <Typography variant="body2" color="text.secondary">
+                  Please enter the 6-digit OTP code sent to <strong>+91 {mobileNumber}</strong>.
+                </Typography>
+
+                <TextField
+                  fullWidth
+                  label="Enter OTP"
+                  placeholder="Enter OTP"
+                  value={otp}
+                  onChange={(e) => setOtp(e.target.value)}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <VerifiedUserIcon color="primary" />
+                      </InputAdornment>
+                    ),
+                  }}
+                />
+
+                {debugOtp && (
+                  <Chip
+                    label={`Demo OTP: ${debugOtp}`}
+                    color="secondary"
+                    variant="outlined"
+                    onClick={() => setOtp(debugOtp)}
+                    sx={{ alignSelf: 'center', cursor: 'pointer', fontWeight: 700 }}
+                  />
+                )}
+
+                <Button
+                  type="submit"
+                  variant="contained"
+                  size="large"
+                  disabled={submitting || !otp}
+                  sx={{ py: 1.4, fontSize: '1rem', fontWeight: 700, borderRadius: 2 }}
+                >
+                  {submitting ? 'Registering Account...' : 'Complete Registration'}
+                </Button>
+
+                <Button size="small" color="inherit" onClick={() => setStep(1)}>
+                  Back to Edit Details
+                </Button>
+              </Stack>
+            </form>
+          )}
+
+          <Divider sx={{ my: 3 }}>OR</Divider>
+
+          <Stack direction="row" justifyContent="center" spacing={1}>
+            <Typography variant="body2" color="text.secondary">
+              Already have an account?
             </Typography>
-
-            {/* Language Selector */}
-            <FormControl size="small">
-              <Select
-                value={language}
-                onChange={(e) => setLanguage(e.target.value)}
-                startAdornment={<LanguageIcon sx={{ fontSize: 18, color: '#4b5563', mr: 0.5 }} />}
-                sx={{
-                  borderRadius: '20px',
-                  backgroundColor: '#f3f4f6',
-                  fontSize: '0.85rem',
-                  fontWeight: 600,
-                  '& .MuiSelect-select': { py: 0.7, pr: 3 },
-                }}
-              >
-                <MenuItem value="en">English</MenuItem>
-                <MenuItem value="hi">हिंदी (Hindi)</MenuItem>
-                <MenuItem value="mr">मराठी (Marathi)</MenuItem>
-              </Select>
-            </FormControl>
-          </Box>
-        </Toolbar>
-      </AppBar>
-
-      {/* Main Registration Content Container */}
-      <Container maxWidth="lg" sx={{ flexGrow: 1, py: { xs: 3, md: 5 }, px: { xs: 2, sm: 3, md: 5 } }}>
-        {/* Step Header: Title "Register" on left, Stepper indicator on right */}
-        <Box
-          sx={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            mb: 2,
-            flexWrap: 'wrap',
-            gap: 2,
-          }}
-        >
-          <Typography
-            variant="h4"
-            component="h1"
-            sx={{
-              fontWeight: 800,
-              color: '#1b5e20',
-              fontSize: { xs: '1.75rem', md: '2.1rem' },
-              letterSpacing: -0.5,
-            }}
-          >
-            Register
-          </Typography>
-
-          <StepProgress currentStep={currentStep} totalSteps={4} />
-        </Box>
-
-        {/* User Type Selector (Visible on Step 1) */}
-        {currentStep === 1 && (
-          <UserTypeSelector userType={userType} onChange={setUserType} />
-        )}
-
-        {/* Step Component View */}
-        <Box sx={{ mt: 3, mb: 6 }}>
-          {currentStep === 1 && (
-            <Step1RegistrationDetails
-              formData={formData}
-              updateFormData={updateFormData}
-              userType={userType}
-              errors={errors}
-            />
-          )}
-
-          {currentStep === 2 && (
-            <Step2IdentityAddress
-              formData={formData}
-              updateFormData={updateFormData}
-              errors={errors}
-            />
-          )}
-
-          {currentStep === 3 && (
-            <Step3ContactDetails
-              formData={formData}
-              updateFormData={updateFormData}
-              errors={errors}
-            />
-          )}
-
-          {currentStep === 4 && (
-            <Step4BankSecurity
-              formData={formData}
-              updateFormData={updateFormData}
-              userType={userType}
-              errors={errors}
-            />
-          )}
-        </Box>
-
-        {/* Bottom Actions Bar */}
-        <Box
-          sx={{
-            display: 'flex',
-            justifyContent: currentStep > 1 ? 'space-between' : 'flex-end',
-            alignItems: 'center',
-            pt: 3,
-            pb: 4,
-            borderTop: '1px solid #e5e7eb',
-          }}
-        >
-          {currentStep > 1 && (
-            <Button
-              variant="outlined"
-              onClick={handlePrevious}
-              startIcon={<ArrowBackIcon />}
-              sx={{
-                px: 3.5,
-                py: 1.1,
-                borderColor: '#2e7d32',
-                color: '#2e7d32',
-                borderRadius: 2,
-                fontWeight: 700,
-                textTransform: 'none',
-                fontSize: '0.95rem',
-                '&:hover': {
-                  borderColor: '#1b5e20',
-                  backgroundColor: 'rgba(46, 125, 50, 0.05)',
-                },
-              }}
+            <Typography
+              component={RouterLink}
+              to="/login"
+              variant="body2"
+              fontWeight={700}
+              color="primary.main"
+              sx={{ textDecoration: 'none' }}
             >
-              Previous
-            </Button>
-          )}
-
-          <Button
-            variant="contained"
-            onClick={handleNext}
-            endIcon={currentStep < 4 ? <ArrowForwardIcon /> : undefined}
-            sx={{
-              px: 4.5,
-              py: 1.2,
-              backgroundColor: '#5b9a68',
-              borderRadius: 2,
-              fontWeight: 700,
-              textTransform: 'none',
-              fontSize: '0.95rem',
-              '&:hover': {
-                backgroundColor: '#2e7d32',
-              },
-            }}
-          >
-            {currentStep < 4 ? 'Next' : 'Submit Registration'}
-          </Button>
-        </Box>
+              Sign In Here
+            </Typography>
+          </Stack>
+        </Paper>
       </Container>
-
-      {/* Success Modal on Complete Registration */}
-      <Dialog
-        open={successDialogOpen}
-        onClose={() => navigate('/login')}
-        maxWidth="sm"
-        fullWidth
-        PaperProps={{ sx: { borderRadius: 3, p: 2, textAlign: 'center' } }}
-      >
-        <DialogTitle sx={{ pb: 1 }}>
-          <CheckCircleIcon sx={{ color: '#2e7d32', fontSize: 64, mb: 1 }} />
-          <Typography variant="h5" sx={{ fontWeight: 800, color: '#1b5e20' }}>
-            Registration Submitted Successfully!
-          </Typography>
-        </DialogTitle>
-        <DialogContent>
-          <Typography variant="body1" sx={{ color: '#4b5563', mb: 2 }}>
-            Thank you, <strong>{formData.firstName || 'User'}</strong>. Your application has been registered with{' '}
-            <strong>{formData.apmc || 'APMC'}</strong> under KisanConnect / eNAM.
-          </Typography>
-          <Typography variant="body2" sx={{ color: '#6b7280', backgroundColor: '#f3f4f6', p: 2, borderRadius: 2 }}>
-            <strong>Application Reference ID:</strong> {referenceId}
-            <br />
-            An acknowledgment has been prepared for your registered mobile number{' '}
-            <strong>+91 {formData.mobileNumber}</strong>.
-          </Typography>
-        </DialogContent>
-        <DialogActions sx={{ justifyContent: 'center', pb: 2 }}>
-          <Button
-            variant="contained"
-            onClick={() => navigate('/login')}
-            sx={{
-              backgroundColor: '#2e7d32',
-              borderRadius: 2,
-              px: 4,
-              py: 1.2,
-              fontWeight: 700,
-              textTransform: 'none',
-              '&:hover': { backgroundColor: '#1b5e20' },
-            }}
-          >
-            Proceed to Login
-          </Button>
-        </DialogActions>
-      </Dialog>
     </Box>
   )
 }
