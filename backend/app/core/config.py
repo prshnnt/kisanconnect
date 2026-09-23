@@ -22,6 +22,21 @@ class Settings(BaseSettings):
     debug_otp: bool = False  # returns the OTP in API responses. Development only
     cors_origins: list[str] = ["*"]
 
+    # --- Chatbot (talks to an Ollama-compatible server) ---
+    ollama_base_url: str = "https://api.ollama.com"  # Ollama Cloud; point at http://localhost:11434 for a local server
+    ollama_model: str = "gpt-oss:120b"
+    ollama_api_key: str = ""  # optional bearer token, e.g. for Ollama Cloud (api.ollama.com)
+    ollama_timeout_seconds: int = 60
+    chat_system_prompt: str = (
+        "You are the KisanConnect assistant, helping farmers (sellers) and buyers on an "
+        "agricultural mandi marketplace. Answer questions about mandi prices, lots, auctions, "
+        "trades, commission agents, and general farming/market queries clearly and concisely. "
+        "If you don't know something specific to this account (like an order status), say so "
+        "and suggest where in the app they can check. Keep answers short and simple."
+    )
+    chat_ttl_minutes: int = 30  # temp chat threads expire after this much inactivity
+    chat_max_turns: int = 12  # user+assistant message pairs kept per thread before trimming
+
     @model_validator(mode="after")
     def _fail_closed_in_production(self):
         """Refuse to boot with insecure settings instead of quietly running exposed."""
