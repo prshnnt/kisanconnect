@@ -1,35 +1,81 @@
-# figma-make-app
+# KisanConnect Frontend (React 19 + Vite 8 + MUI v9 + Tailwind CSS v4)
 
-React + Vite + Tailwind CSS project running inside Figma Make.
+This directory contains the user interface for **KisanConnect**, an eNAM-inspired digital agricultural marketplace (mandi) platform.
 
-## Development Server
+---
 
-A Vite development server is **already running** on `$PORT` (default 8443). You don't need to start it manually.
+## 1. Tech Stack Overview
 
-- Preview URL: The user can access the running app through the preview panel
-- Hot reload: Changes to source files are reflected immediately
+- **Framework**: React 19 (`react`, `react-dom`)
+- **Build Tooling & Server**: Vite 8 (`vite`, `@vitejs/plugin-react`)
+- **Routing**: React Router v7 (`react-router-dom`)
+- **UI Component Library**: Material UI v9 (`@mui/material`, `@mui/icons-material`, `@emotion/react`, `@emotion/styled`)
+- **Utility Styling**: Tailwind CSS v4 (`tailwindcss`, `@tailwindcss/vite`)
+- **Language**: JavaScript / JSX + TypeScript support
+- **Formatting**: `oxfmt`
 
-## Project Structure
+---
 
-This is the canonical project structure. Start with task-relevant files below. Only follow imports or inspect other files when required, when a documented path is missing, or when the repository contradicts this guide.
+## 2. Directory Structure
 
-- `src/main.tsx` - React entrypoint; imports `src/index.css` and mounts `src/App.tsx` into the `#root` element
-- `src/App.tsx` - Primary application component and the usual starting point for UI work
-- `src/index.css` - Global CSS entrypoint and Tailwind CSS v4 import
-- `index.html` - Vite HTML shell containing the `#root` element and loading `src/main.tsx`
-- `package.json` - Project dependencies and the Vite build, development, preview, and formatting scripts
-- `vite.config.ts` - Vite configuration with React, Tailwind CSS v4, and Figma Make plugins plus the `@` alias for `src`
-- `.mise.toml` - Toolchain versions for Node.js and pnpm
+```
+frontend/
+├── src/
+│   ├── api/                     # Axios/Fetch API integration functions
+│   ├── components/              # Shared UI components
+│   │   ├── BalveerFAB.jsx       # Voice / AI assistant FAB launcher
+│   │   ├── BigStepper.jsx       # Multi-step flow progress stepper
+│   │   ├── EmptyState.jsx       # Empty state display component
+│   │   ├── OfflineBanner.jsx    # Connectivity alert banner
+│   │   ├── PriceChip.jsx        # Price tag display component
+│   │   ├── StatusPill.jsx       # Lot & trade status badges
+│   │   ├── TopBar.jsx           # App top bar navigation header
+│   │   ├── TrustMeter.jsx       # Buyer/Trader trust score meter
+│   │   └── VerifiedBadge.jsx    # User verification status badge
+│   ├── contexts/                # Global React contexts
+│   │   ├── AuthContext.jsx      # Authentication & token session context
+│   │   └── LanguageContext.jsx  # Multilingual support context
+│   ├── imports/                 # OpenAPI specification & prompt reference files
+│   ├── screens/                 # Role-specific application views
+│   │   ├── admin/               # APMC Market Admin dashboards & controls
+│   │   ├── agent/               # Commission Agent workflow screens
+│   │   ├── buyer/               # Buyer / Trader market screens & deal rooms
+│   │   ├── farmer/              # Farmer screens (today, radar, selling, my lots, deals, money, services)
+│   │   ├── onboarding/          # Auth, OTP, language selection, and setup flow
+│   │   └── provider/            # Service Provider (Quality/Assayer, Logistics, Warehouse) screens
+│   ├── utils/                   # Shared utility & helper functions (e.g. format.js)
+│   ├── App.jsx                  # Main application component with route definitions & theme/context providers
+│   ├── main.jsx                 # React DOM mount entrypoint
+│   ├── index.css                # Global CSS & Tailwind CSS v4 entry point (`@import 'tailwindcss';`)
+│   └── theme.js                 # Custom Material UI theme configuration
+├── index.html                   # HTML entry shell
+├── package.json                 # Node dependencies and scripts
+├── tsconfig.json                # TypeScript compiler config
+└── vite.config.ts               # Vite configuration (React, Tailwind CSS v4)
+```
 
-## Dependencies
+---
 
-- Runtime: React 19 and React DOM 19
-- Styling: Tailwind CSS v4 with the `@tailwindcss/vite` plugin
-- Build tooling: Vite 8, TypeScript 5.7, and `@vitejs/plugin-react`
-- Formatting: oxfmt
+## 3. Scripts & Workflows
 
-## Styling
+```bash
+# Start local development server (runs at http://localhost:5173)
+npm run dev
 
-This project uses **Tailwind CSS v4** through the `@tailwindcss/vite` plugin configured in `vite.config.ts`. `src/index.css` imports Tailwind with `@import 'tailwindcss';`. Use Tailwind utility classes directly in JSX and put global CSS or Tailwind v4 theme customization in `src/index.css`. This scaffold does not need a Tailwind config file or PostCSS config.
+# Build production bundle
+npm run build
 
-`src/main.tsx` imports `src/index.css`, so global font wiring belongs in `src/index.css`. Keep CSS `@import` statements first, then add any `@font-face` rules and font-family defaults there.
+# Preview production build
+npm run preview
+
+# Format code using oxfmt
+npm run format
+```
+
+---
+
+## 4. Key Design & Development Rules
+
+1. **Styling Integration**: MUI v9 Theme Provider (`src/theme.js`) combined with Tailwind CSS v4 utility classes.
+2. **Role-Based Views**: Screens are organized under `src/screens/<role>/` (e.g., `farmer`, `buyer`, `agent`, `admin`, `provider`, `onboarding`).
+3. **State & Context**: Shared user auth state and locale choices are managed via `AuthContext` and `LanguageContext`.

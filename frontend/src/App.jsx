@@ -1,80 +1,80 @@
-import React from 'react'
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
-import { ThemeProvider } from '@mui/material/styles'
-import CssBaseline from '@mui/material/CssBaseline'
-import theme from './theme.js'
-import { LanguageProvider } from './contexts/LanguageContext.jsx'
-import { AuthProvider } from './contexts/AuthContext.jsx'
+import React from "react"
+import { BrowserRouter, Routes, Route } from "react-router-dom"
+import { ThemeProvider } from "@mui/material/styles"
+import CssBaseline from "@mui/material/CssBaseline"
+import theme from "./theme.js"
+import { LanguageProvider } from "./contexts/LanguageContext.jsx"
+import { AuthProvider } from "./contexts/AuthContext.jsx"
 
 // Onboarding
-import X1Language from './screens/onboarding/X1Language.jsx'
-import X2UserType from './screens/onboarding/X2UserType.jsx'
-import X3Phone from './screens/onboarding/X3Phone.jsx'
-import X4OTP from './screens/onboarding/X4OTP.jsx'
-import X5AboutYou from './screens/onboarding/X5AboutYou.jsx'
-import X6HomeMandi from './screens/onboarding/X6HomeMandi.jsx'
-import X7Welcome from './screens/onboarding/X7Welcome.jsx'
-import X8Login from './screens/onboarding/X8Login.jsx'
+import X1Language from "./screens/onboarding/X1Language.jsx"
+import X2UserType from "./screens/onboarding/X2UserType.jsx"
+import X3Phone from "./screens/onboarding/X3Phone.jsx"
+import X4OTP from "./screens/onboarding/X4OTP.jsx"
+import X5AboutYou from "./screens/onboarding/X5AboutYou.jsx"
+import X6HomeMandi from "./screens/onboarding/X6HomeMandi.jsx"
+import X7Welcome from "./screens/onboarding/X7Welcome.jsx"
+import X8Login from "./screens/onboarding/X8Login.jsx"
 
 // Farmer
-import FarmerShell from './screens/farmer/FarmerShell.jsx'
-import F1Today from './screens/farmer/F1Today.jsx'
-import F2PriceRadar from './screens/farmer/F2PriceRadar.jsx'
-import F3PriceDetail from './screens/farmer/F3PriceDetail.jsx'
-import F4WhatSelling from './screens/farmer/F4WhatSelling.jsx'
-import F5HowMuch from './screens/farmer/F5HowMuch.jsx'
-import F6Quality from './screens/farmer/F6Quality.jsx'
-import F7Where from './screens/farmer/F7Where.jsx'
-import F8MinPrice from './screens/farmer/F8MinPrice.jsx'
-import F9HowToSell from './screens/farmer/F9HowToSell.jsx'
-import F10Review from './screens/farmer/F10Review.jsx'
-import F11MyLots from './screens/farmer/F11MyLots.jsx'
-import F12Offers from './screens/farmer/F12Offers.jsx'
-import F14Deals from './screens/farmer/F14Deals.jsx'
-import F15DealRoom from './screens/farmer/F15DealRoom.jsx'
-import F16Money from './screens/farmer/F16Money.jsx'
-import F17Problem from './screens/farmer/F17Problem.jsx'
-import F19Services from './screens/farmer/F19Services.jsx'
-import F20ServiceDetail from './screens/farmer/F20ServiceDetail.jsx'
-import F21FindBuyers from './screens/farmer/F21FindBuyers.jsx'
-import F23Me from './screens/farmer/F23Me.jsx'
+import FarmerShell from "./screens/farmer/FarmerShell.jsx"
+import F1Today from "./screens/farmer/F1Today.jsx"
+import F2PriceRadar from "./screens/farmer/F2PriceRadar.jsx"
+import F3PriceDetail from "./screens/farmer/F3PriceDetail.jsx"
+import F4WhatSelling from "./screens/farmer/F4WhatSelling.jsx"
+import F5HowMuch from "./screens/farmer/F5HowMuch.jsx"
+import F6Quality from "./screens/farmer/F6Quality.jsx"
+import F7Where from "./screens/farmer/F7Where.jsx"
+import F8MinPrice from "./screens/farmer/F8MinPrice.jsx"
+import F9HowToSell from "./screens/farmer/F9HowToSell.jsx"
+import F10Review from "./screens/farmer/F10Review.jsx"
+import F11MyLots from "./screens/farmer/F11MyLots.jsx"
+import F12Offers from "./screens/farmer/F12Offers.jsx"
+import F14Deals from "./screens/farmer/F14Deals.jsx"
+import F15DealRoom from "./screens/farmer/F15DealRoom.jsx"
+import F16Money from "./screens/farmer/F16Money.jsx"
+import F17Problem from "./screens/farmer/F17Problem.jsx"
+import F19Services from "./screens/farmer/F19Services.jsx"
+import F20ServiceDetail from "./screens/farmer/F20ServiceDetail.jsx"
+import F21FindBuyers from "./screens/farmer/F21FindBuyers.jsx"
+import F23Me from "./screens/farmer/F23Me.jsx"
 
 // Buyer
-import BuyerShell from './screens/buyer/BuyerShell.jsx'
-import B1Home from './screens/buyer/B1Home.jsx'
-import B2FindSupply from './screens/buyer/B2FindSupply.jsx'
-import B4PostDemand from './screens/buyer/B4PostDemand.jsx'
-import B5MakeOffer from './screens/buyer/B5MakeOffer.jsx'
-import B6MyDemands from './screens/buyer/B6MyDemands.jsx'
-import B7MyOffers from './screens/buyer/B7MyOffers.jsx'
-import B8DealsList from './screens/buyer/B8DealsList.jsx'
-import B8DealRoom from './screens/buyer/B8DealRoom.jsx'
-import B9Trust from './screens/buyer/B9Trust.jsx'
-import B10MyProfile from './screens/buyer/B10MyProfile.jsx'
+import BuyerShell from "./screens/buyer/BuyerShell.jsx"
+import B1Home from "./screens/buyer/B1Home.jsx"
+import B2FindSupply from "./screens/buyer/B2FindSupply.jsx"
+import B4PostDemand from "./screens/buyer/B4PostDemand.jsx"
+import B5MakeOffer from "./screens/buyer/B5MakeOffer.jsx"
+import B6MyDemands from "./screens/buyer/B6MyDemands.jsx"
+import B7MyOffers from "./screens/buyer/B7MyOffers.jsx"
+import B8DealsList from "./screens/buyer/B8DealsList.jsx"
+import B8DealRoom from "./screens/buyer/B8DealRoom.jsx"
+import B9Trust from "./screens/buyer/B9Trust.jsx"
+import B10MyProfile from "./screens/buyer/B10MyProfile.jsx"
 
 // Agent
-import AgentShell from './screens/agent/AgentShell.jsx'
-import A1Today from './screens/agent/A1Today.jsx'
-import A2Farmers from './screens/agent/A2Farmers.jsx'
-import A3Lots from './screens/agent/A3Lots.jsx'
-import A5Money from './screens/agent/A5Money.jsx'
-import A6MyProfile from './screens/agent/A6MyProfile.jsx'
+import AgentShell from "./screens/agent/AgentShell.jsx"
+import A1Today from "./screens/agent/A1Today.jsx"
+import A2Farmers from "./screens/agent/A2Farmers.jsx"
+import A3Lots from "./screens/agent/A3Lots.jsx"
+import A5Money from "./screens/agent/A5Money.jsx"
+import A6MyProfile from "./screens/agent/A6MyProfile.jsx"
 
 // Provider
-import ProviderShell from './screens/provider/ProviderShell.jsx'
-import S1Jobs from './screens/provider/S1Jobs.jsx'
-import S3Services from './screens/provider/S3Services.jsx'
-import S4Calendar from './screens/provider/S4Calendar.jsx'
-import S5Earnings from './screens/provider/S5Earnings.jsx'
-import S6MyProfile from './screens/provider/S6MyProfile.jsx'
+import ProviderShell from "./screens/provider/ProviderShell.jsx"
+import S1Jobs from "./screens/provider/S1Jobs.jsx"
+import S3Services from "./screens/provider/S3Services.jsx"
+import S4Calendar from "./screens/provider/S4Calendar.jsx"
+import S5Earnings from "./screens/provider/S5Earnings.jsx"
+import S6MyProfile from "./screens/provider/S6MyProfile.jsx"
 
 // Admin
-import AdminShell from './screens/admin/AdminShell.jsx'
-import D1Overview from './screens/admin/D1Overview.jsx'
-import D2Approvals from './screens/admin/D2Approvals.jsx'
-import D3LiveOps from './screens/admin/D3LiveOps.jsx'
-import D5Disputes from './screens/admin/D5Disputes.jsx'
-import D7Rules from './screens/admin/D7Rules.jsx'
+import AdminShell from "./screens/admin/AdminShell.jsx"
+import D1Overview from "./screens/admin/D1Overview.jsx"
+import D2Approvals from "./screens/admin/D2Approvals.jsx"
+import D3LiveOps from "./screens/admin/D3LiveOps.jsx"
+import D5Disputes from "./screens/admin/D5Disputes.jsx"
+import D7Rules from "./screens/admin/D7Rules.jsx"
 
 export default function App() {
   return (
@@ -113,7 +113,10 @@ export default function App() {
                 <Route path="money" element={<F16Money />} />
                 <Route path="problem" element={<F17Problem />} />
                 <Route path="services" element={<F19Services />} />
-                <Route path="services/:serviceId" element={<F20ServiceDetail />} />
+                <Route
+                  path="services/:serviceId"
+                  element={<F20ServiceDetail />}
+                />
                 <Route path="find-buyers" element={<F21FindBuyers />} />
                 <Route path="me" element={<F23Me />} />
               </Route>

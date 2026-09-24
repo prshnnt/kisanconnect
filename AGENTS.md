@@ -7,7 +7,7 @@ Welcome to **KisanConnect**! This repository is an eNAM-inspired digital agricul
 ## 1. Project Overview & Architecture
 
 * **Backend**: Python 3.12, FastAPI, Async SQLAlchemy 2.0, Pydantic v2, PostgreSQL 16, Celery + Redis, Alembic migrations.
-* **Frontend**: React 19, Vite, Material UI (MUI v9), Emotion, React Router v7, Oxlint.
+* **Frontend**: React 19, Vite 8, Material UI (MUI v9), Emotion, Tailwind CSS v4, React Router v7, TypeScript, oxfmt.
 * **Containerization**: Docker Compose (`db`, `redis`, `backend`, `celery_worker`, `celery_beat`, `frontend`).
 * **Database Schema**: 34-table consolidated eNAM schema documented in [`schema.dbml`](file:///d:/Workspace/KisanConnect/schema.dbml).
 
@@ -40,15 +40,21 @@ KisanConnect/
 │   ├── alembic/                     # Database migrations
 │   ├── scripts/                     # Backend seeding (`seed.py`)
 │   └── pyproject.toml               # Python dependencies and build config
-├── frontend/                        # React 19 + Vite Frontend
+├── frontend/                        # React 19 + Vite 8 + MUI v9 + Tailwind v4 Frontend
 │   ├── src/
-│   │   ├── api/                     # Axios/Fetch API client functions
-│   │   ├── components/              # UI components (MUI based)
-│   │   ├── pages/                   # Page level views
-│   │   ├── routes/                  # React Router v7 routing definitions
+│   │   ├── api/                     # Axios/Fetch API client modules
+│   │   ├── components/              # Shared UI components (TopBar, BalveerFAB, StatusPill, TrustMeter, etc.)
+│   │   ├── contexts/                # React Contexts (AuthContext, LanguageContext)
+│   │   ├── imports/                 # OpenAPI specs and design/prompt documentation
+│   │   ├── screens/                 # Role-based screens (admin, agent, buyer, farmer, onboarding, provider)
+│   │   ├── utils/                   # Helper utilities (formatters)
+│   │   ├── App.jsx                  # Main routing, role shells, and app providers
+│   │   ├── main.jsx                 # React 19 entry point
+│   │   ├── index.css                # Global CSS & Tailwind CSS v4 setup
 │   │   └── theme.js                 # MUI custom theme configuration
-│   ├── package.json                 # Node dependencies (MUI v9, Vite, Oxlint)
-│   └── vite.config.js               # Vite configuration
+│   ├── package.json                 # Node dependencies (React 19, MUI v9, Tailwind v4, Vite 8)
+│   ├── tsconfig.json                # TypeScript compiler configuration
+│   └── vite.config.ts               # Vite configuration with Tailwind CSS v4 & React plugin
 └── scripts/
     ├── commit.py                    # Structured conventional git commit helper
     └── verify.py                    # Automated test, lint, and build verification tool
