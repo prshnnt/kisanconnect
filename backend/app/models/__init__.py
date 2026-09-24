@@ -1,4 +1,5 @@
 from app.models.agmarknet import DailyMarketPrice
+from app.models.disputes import Dispute
 from app.models.geo import Apmc, BagType, Commodity, District, State, Tehsil, Variety
 from app.models.identity import BankAccount, Buyer, OtpChallenge, RefreshToken, Seller, TradeLicense, User
 from app.models.services import Equipment, ProviderService, ServiceBooking, ServiceCatalog, ServiceProvider, WeighmentRecord
@@ -25,6 +26,7 @@ __all__ = [
     "BillCharge",
     "ChargeRule",
     "DailyMarketPrice",
+    "Dispute",
     "Settlement",
     "Attachment",
     "Auction",
@@ -59,3 +61,4 @@ __all__ = [
     "Variety",
     "WeighmentRecord",
 ]
+
