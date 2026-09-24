@@ -11,6 +11,7 @@ celery.conf.beat_schedule = {
     "sweep-auctions": {"task": "app.tasks.jobs.sweep_auctions", "schedule": 60.0},
     "auto-declare": {"task": "app.tasks.jobs.auto_declare", "schedule": 60.0},
     "nightly-expiry": {"task": "app.tasks.jobs.expire_records", "schedule": crontab(hour=0, minute=15)},
+    "daily-ceda-price-sync": {"task": "app.tasks.jobs.sync_ceda_prices", "schedule": crontab(hour=1, minute=30)},
 }
 
 

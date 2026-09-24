@@ -19,8 +19,12 @@ class Settings(BaseSettings):
     max_failed_logins: int = 5
     lockout_minutes: int = 15
     admin_invite_code: str = ""
-    debug_otp: bool = False  # returns the OTP in API responses. Development only
     cors_origins: list[str] = ["*"]
+
+    # --- CEDA Agmarknet API Settings ---
+    ceda_api_base_url: str = "https://api.ceda.ashoka.edu.in/v1"
+    ceda_api_key: str = "d0a2c5f77ab5ea4c148d27d9ff2bad14f2cd61ea4d4edbf9be91b291c0f40c10"
+    ceda_sync_on_startup: bool = False
 
     # --- Chatbot (talks to an Ollama-compatible server) ---
     ollama_base_url: str = "https://api.ollama.com"  # Ollama Cloud; point at http://localhost:11434 for a local server

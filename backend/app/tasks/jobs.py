@@ -65,3 +65,12 @@ async def expire_due(db) -> dict:
 @celery.task(name="app.tasks.jobs.expire_records")
 def expire_records() -> dict:
     return run(_with_session(expire_due))
+
+
+@celery.task(name="app.tasks.jobs.sync_ceda_prices")
+def sync_ceda_prices() -> dict:
+    """Daily job: programmatically ingest states, districts, commodities, APMCs, and prices from CEDA API."""
+    from app.services.ceda_ingestion import run_ceda_full_ingestion
+
+    return run(_with_session(lambda db: run_ceda_full_ingestion(db, days_back=14)))
+
